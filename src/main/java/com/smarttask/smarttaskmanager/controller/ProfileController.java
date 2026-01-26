@@ -1,6 +1,7 @@
 package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
+import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.scene.layout.VBox; // Import Mohim
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class ProfileController {
 
@@ -27,156 +30,159 @@ public class ProfileController {
     @FXML private TextArea bioField;
     @FXML private Circle profileImage;
 
-    // Password Fields
     @FXML private PasswordField currentPasswordField;
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
 
-    // Variable bach n3rfu chkun connecté (Email d l'utilisateur)
-    // F l'ghalib katjibih mn Session, hna ghadi nkhdmu b emailField
+    // HEADER & STATS
+    @FXML private Label lblHeaderName;
+    @FXML private Label lblHeaderRole;
+    @FXML private Label lblStatDone;
+    @FXML private Label lblStatPending;
+    @FXML private Label lblStatScore;
+
+    // --- NOUVEAU : POUR LE CHANGEMENT DE VUE (Info vs Security) ---
+    @FXML private VBox infoBox;       // La boite Personal Info
+    @FXML private VBox securityBox;   // La boite Security
+
+    @FXML private Button btnTabInfo;      // Bouton Info
+    @FXML private Button btnTabSecurity;  // Bouton Security
+
     private String userEmail;
 
     @FXML
     public void initialize() {
-        // 1. Initialiser l'data (Normalement hadchi kayji mn LoginSession)
-        // Daba ghandiru exemple statique, walakin ila 3ndk Session, jibih mn tmak
-        userEmail = "test@email.com"; // <-- HADA LI GHAYTBDDEL MOT DE PASS DYALO
+        // Par défaut, nbaynu Info w nkhbiw Security
+        showInfoForm();
 
-        usernameField.setText("Student Master");
-        emailField.setText(userEmail);
-        bioField.setText("Developing Smart Task Manager Project.");
-
-        // Image par défaut (Optional)
-        // profileImage.setFill(new ImagePattern(new Image("...")));
-    }
-
-    // --- 1. CHANGE PHOTO ---
-    @FXML
-    public void handleImportImage(ActionEvent event) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Profile Picture");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
-
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        File selectedFile = fileChooser.showOpenDialog(stage);
-
-        if (selectedFile != null) {
-            try {
-                Image image = new Image(selectedFile.toURI().toString());
-                profileImage.setFill(new ImagePattern(image));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        UserSession session = UserSession.getInstance();
+        if (session != null) {
+            this.userEmail = session.getEmail();
+            emailField.setText(userEmail);
+            loadUserDetails();
+            loadUserStats();
         }
     }
 
-    // --- 2. SAVE INFO (Update Name/Bio) ---
+    // --- METHODES POUR CHANGER LA VUE (Boutons du haut) ---
     @FXML
-    public void saveInfo(ActionEvent event) {
-        String newUsername = usernameField.getText();
-        String newBio = bioField.getText();
+    public void switchForm(ActionEvent event) {
+        if (event.getSource() == btnTabInfo) {
+            showInfoForm();
+        } else if (event.getSource() == btnTabSecurity) {
+            showSecurityForm();
+        }
+    }
 
-        String sql = "UPDATE users SET username = ?, bio = ? WHERE email = ?";
+    private void showInfoForm() {
+        infoBox.setVisible(true);
+        securityBox.setVisible(false);
+
+        // Style Active (Mfoncé)
+        btnTabInfo.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand;");
+        // Style Inactive (Transparent)
+        btnTabSecurity.setStyle("-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand;");
+    }
+
+    private void showSecurityForm() {
+        infoBox.setVisible(false);
+        securityBox.setVisible(true);
+
+        // Style Active
+        btnTabSecurity.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand;");
+        // Style Inactive
+        btnTabInfo.setStyle("-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand;");
+    }
+
+    // ... (LES AUTRES METHODES RESTENT LES MEMES : loadUserStats, loadUserDetails, saveInfo, etc.) ...
+
+    private void loadUserDetails() {
+        String sql = "SELECT username, bio, image_path FROM users WHERE email = ?";
         Connection connect = DatabaseConnection.getInstance().getConnection();
-
         try {
             PreparedStatement prepare = connect.prepareStatement(sql);
-            prepare.setString(1, newUsername);
-            prepare.setString(2, newBio);
-            prepare.setString(3, userEmail);
-
-            int result = prepare.executeUpdate();
-            if (result > 0) {
-                showAlert(Alert.AlertType.INFORMATION, "Succès", "Informations mises à jour !");
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de mettre à jour.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // --- 3. UPDATE PASSWORD (HNA L'MA39OUL) ---
-    @FXML
-    public void updatePassword(ActionEvent event) {
-        String currentPass = currentPasswordField.getText();
-        String newPass = newPasswordField.getText();
-        String confirmPass = confirmPasswordField.getText();
-
-        // A. Vérifications lwalin
-        if (currentPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez remplir tous les champs.");
-            return;
-        }
-
-        if (!newPass.equals(confirmPass)) {
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Les nouveaux mots de passe ne correspondent pas !");
-            return;
-        }
-
-        Connection connect = DatabaseConnection.getInstance().getConnection();
-
-        try {
-            // B. Vérifier wach Mot de passe l9dim s7i7?
-            String checkSql = "SELECT password FROM users WHERE email = ?";
-            PreparedStatement checkStmt = connect.prepareStatement(checkSql);
-            checkStmt.setString(1, userEmail);
-            ResultSet rs = checkStmt.executeQuery();
-
+            prepare.setString(1, userEmail);
+            ResultSet rs = prepare.executeQuery();
             if (rs.next()) {
-                String dbPassword = rs.getString("password");
-
-                // Ila kan l'mot de passe s7i7 -> Nbeddluh
-                if (dbPassword.equals(currentPass)) {
-
-                    // C. Update l'mot de passe jdid
-                    String updateSql = "UPDATE users SET password = ? WHERE email = ?";
-                    PreparedStatement updateStmt = connect.prepareStatement(updateSql);
-                    updateStmt.setString(1, newPass);
-                    updateStmt.setString(2, userEmail);
-
-                    int result = updateStmt.executeUpdate();
-
-                    if (result > 0) {
-                        showAlert(Alert.AlertType.INFORMATION, "Succès", "Mot de passe modifié avec succès !");
-                        // Nkhwiw les champs
-                        currentPasswordField.clear();
-                        newPasswordField.clear();
-                        confirmPasswordField.clear();
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Erreur", "Erreur lors de la modification.");
-                    }
-
-                } else {
-                    // Ila kan mot de passe l9dim ghalet
-                    showAlert(Alert.AlertType.ERROR, "Erreur", "Le mot de passe actuel est incorrect.");
+                String username = rs.getString("username");
+                String bio = rs.getString("bio");
+                String imagePath = rs.getString("image_path");
+                usernameField.setText(username);
+                bioField.setText(bio);
+                lblHeaderName.setText(username);
+                lblHeaderRole.setText(bio != null ? bio : "Software Engineer");
+                if (imagePath != null && !imagePath.isEmpty()) {
+                    try { profileImage.setFill(new ImagePattern(new Image(imagePath))); } catch (Exception e) {}
                 }
             }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Erreur Base de Données", "Erreur: " + e.getMessage());
+    private void loadUserStats() {
+        Connection connect = DatabaseConnection.getInstance().getConnection();
+        String sqlDone = "SELECT COUNT(*) FROM tasks WHERE status = 'Completed'";
+        String sqlTotal = "SELECT COUNT(*) FROM tasks";
+        try {
+            Statement stmt = connect.createStatement();
+            ResultSet rsDone = stmt.executeQuery(sqlDone);
+            int doneCount = 0;
+            if(rsDone.next()) doneCount = rsDone.getInt(1);
+            ResultSet rsTotal = stmt.executeQuery(sqlTotal);
+            int totalCount = 0;
+            if(rsTotal.next()) totalCount = rsTotal.getInt(1);
+            int pendingCount = totalCount - doneCount;
+            int productivity = (totalCount > 0) ? (doneCount * 100 / totalCount) : 0;
+            lblStatDone.setText(String.valueOf(doneCount));
+            lblStatPending.setText(String.valueOf(pendingCount));
+            lblStatScore.setText(productivity + "%");
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML public void handleImportImage(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
+        File selectedFile = fileChooser.showOpenDialog(((Node)event.getSource()).getScene().getWindow());
+        if (selectedFile != null) {
+            saveImagePathToDB(selectedFile.toURI().toString());
+            profileImage.setFill(new ImagePattern(new Image(selectedFile.toURI().toString())));
         }
     }
 
-    // Helper Method
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+    private void saveImagePathToDB(String path) {
+        try {
+            Connection connect = DatabaseConnection.getInstance().getConnection();
+            PreparedStatement prepare = connect.prepareStatement("UPDATE users SET image_path = ? WHERE email = ?");
+            prepare.setString(1, path); prepare.setString(2, userEmail); prepare.executeUpdate();
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- NAVIGATION ---
+    @FXML public void saveInfo(ActionEvent event) {
+        try {
+            Connection connect = DatabaseConnection.getInstance().getConnection();
+            PreparedStatement prepare = connect.prepareStatement("UPDATE users SET username = ?, bio = ? WHERE email = ?");
+            prepare.setString(1, usernameField.getText()); prepare.setString(2, bioField.getText()); prepare.setString(3, userEmail);
+            if(prepare.executeUpdate() > 0) showAlert(Alert.AlertType.INFORMATION, "Succès", "Profil mis à jour !");
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML public void updatePassword(ActionEvent event) {
+        if(!newPasswordField.getText().equals(confirmPasswordField.getText())) { showAlert(Alert.AlertType.ERROR, "Erreur", "Mots de passe non identiques"); return; }
+        try {
+            Connection connect = DatabaseConnection.getInstance().getConnection();
+            PreparedStatement check = connect.prepareStatement("SELECT password_hash FROM users WHERE email = ?");
+            check.setString(1, userEmail); ResultSet rs = check.executeQuery();
+            if(rs.next() && rs.getString(1).equals(currentPasswordField.getText())) {
+                PreparedStatement update = connect.prepareStatement("UPDATE users SET password_hash = ? WHERE email = ?");
+                update.setString(1, newPasswordField.getText()); update.setString(2, userEmail); update.executeUpdate();
+                showAlert(Alert.AlertType.INFORMATION, "Succès", "Mot de passe changé !");
+            } else { showAlert(Alert.AlertType.ERROR, "Erreur", "Mot de passe actuel incorrect"); }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
     @FXML public void goToDashboard(ActionEvent event) throws IOException { navigate(event, "/com/smarttask/smarttaskmanager/view/dashboard.fxml"); }
     @FXML public void goToTasks(ActionEvent event) throws IOException { navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml"); }
-    @FXML public void handleLogout(ActionEvent event) throws IOException { navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml"); }
+    @FXML public void handleLogout(ActionEvent event) throws IOException { UserSession.getInstance().cleanUserSession(); navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml"); }
 
-    private void navigate(ActionEvent event, String fxmlPath) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.setScene(new Scene(loader.load()));
-        stage.show();
-    }
+    private void navigate(ActionEvent event, String path) throws IOException { ((Stage)((Node)event.getSource()).getScene().getWindow()).setScene(new Scene(new FXMLLoader(getClass().getResource(path)).load())); }
+    private void showAlert(Alert.AlertType type, String title, String content) { Alert alert = new Alert(type); alert.setTitle(title); alert.setContentText(content); alert.showAndWait(); }
 }

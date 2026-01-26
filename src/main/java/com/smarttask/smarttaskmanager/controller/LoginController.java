@@ -1,6 +1,7 @@
 package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
+import com.smarttask.smarttaskmanager.util.UserSession; // <--- IMPORT MOHIM JIDDAN
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -33,7 +34,10 @@ public class LoginController {
         }
 
         Connection connectDB = DatabaseConnection.getInstance().getConnection();
-        String query = "SELECT count(1) FROM users WHERE email = ? AND password_hash = ?";
+
+        // ⚠️ Bddelna Query: Mabqinach baghin ghir n7sbu (count), baghin njibu Data (username, email)
+        // Ila kant colonne d mot de passe smitha "password" f database, bddli "password_hash" b "password"
+        String query = "SELECT email, username FROM users WHERE email = ? AND password_hash = ?";
 
         try {
             PreparedStatement statement = connectDB.prepareStatement(query);
@@ -42,9 +46,17 @@ public class LoginController {
 
             ResultSet queryResult = statement.executeQuery();
 
-            if (queryResult.next() && queryResult.getInt(1) == 1) {
+            // Ila lqina resultat (ya3ni login s7i7)
+            if (queryResult.next()) {
 
-                // LOGIN NAJ7 -> SIR L DASHBOARD ✅
+                // 1. Njibu Data mn Base de Données
+                String dbEmail = queryResult.getString("email");
+                String dbUsername = queryResult.getString("username");
+
+                // 2. N3mmru SESSION (Hna fin kanbda la mémoire)
+                UserSession.getInstace(dbEmail, dbUsername);
+
+                // 3. Login Naj7 -> Sir l Dashboard
                 goToDashboard(event);
 
             } else {
@@ -87,7 +99,8 @@ public class LoginController {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.out.println("Fichier register.fxml mal9inahch (mazal ma créatuch sa7btek)");
+            System.out.println("Fichier register.fxml mal9inahch");
+            e.printStackTrace();
         }
     }
 
