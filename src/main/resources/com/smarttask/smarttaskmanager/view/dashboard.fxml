@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="650.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.smarttask.smarttaskmanager.controller.DashboardController">
 
     <left>
@@ -19,8 +19,12 @@
             </Label>
 
             <VBox spacing="10.0" VBox.vgrow="ALWAYS">
-                <Button text="Dashboard" maxWidth="Infinity" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+                <Button text="Dashboard" onAction="#goToDashboard" maxWidth="Infinity" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+
                 <Button text="My Tasks" onAction="#goToTasks" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+
+                <Button text="Calendar" onAction="#goToCalendar" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+
                 <Button text="Profile" onAction="#goToProfile" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
             </VBox>
 

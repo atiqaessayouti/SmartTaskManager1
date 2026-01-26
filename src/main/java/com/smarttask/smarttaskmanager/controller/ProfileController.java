@@ -182,7 +182,17 @@ public class ProfileController {
     @FXML public void goToDashboard(ActionEvent event) throws IOException { navigate(event, "/com/smarttask/smarttaskmanager/view/dashboard.fxml"); }
     @FXML public void goToTasks(ActionEvent event) throws IOException { navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml"); }
     @FXML public void handleLogout(ActionEvent event) throws IOException { UserSession.getInstance().cleanUserSession(); navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml"); }
-
+    @FXML
+    public void goToCalendar(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/calendar.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     private void navigate(ActionEvent event, String path) throws IOException { ((Stage)((Node)event.getSource()).getScene().getWindow()).setScene(new Scene(new FXMLLoader(getClass().getResource(path)).load())); }
     private void showAlert(Alert.AlertType type, String title, String content) { Alert alert = new Alert(type); alert.setTitle(title); alert.setContentText(content); alert.showAndWait(); }
 }

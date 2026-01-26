@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.smarttask.smarttaskmanager.controller.CalendarController">
+
+    <left>
+        <VBox spacing="15.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
+            <Label text="SmartManager" textFill="WHITE"><font><Font name="System Bold" size="20.0"/></font></Label>
+            <VBox spacing="10.0" VBox.vgrow="ALWAYS">
+                <Button text="Dashboard" onAction="#goToDashboard" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+                <Button text="My Tasks" onAction="#goToTasks" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+                <Button text="Calendar" maxWidth="Infinity" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+                <Button text="Profile" onAction="#goToProfile" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+            </VBox>
+            <Button text="Logout" onAction="#handleLogout" maxWidth="Infinity" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"/>
+        </VBox>
+    </left>
+
+    <center>
+        <HBox style="-fx-background-color: #f4f6f8;">
+
+            <VBox HBox.hgrow="ALWAYS" spacing="10">
+
+                <StackPane alignment="CENTER" prefHeight="60.0" style="-fx-background-color: #34495e;">
+                    <HBox alignment="CENTER" spacing="20.0">
+                        <Button text="&lt;" onAction="#previousMonth" style="-fx-background-color: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                        <Label fx:id="yearMonthLabel" text="January 2026" textFill="WHITE"><font><Font name="System Bold" size="20.0"/></font></Label>
+                        <Button text="&gt;" onAction="#nextMonth" style="-fx-background-color: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                    </HBox>
+                </StackPane>
+
+                <HBox alignment="CENTER" spacing="10.0" style="-fx-padding: 10; -fx-background-color: white;">
+                    <Label text="Mon" prefWidth="80" alignment="CENTER" textFill="#7f8c8d"/>
+                    <Label text="Tue" prefWidth="80" alignment="CENTER" textFill="#7f8c8d"/>
+                    <Label text="Wed" prefWidth="80" alignment="CENTER" textFill="#7f8c8d"/>
+                    <Label text="Thu" prefWidth="80" alignment="CENTER" textFill="#7f8c8d"/>
+                    <Label text="Fri" prefWidth="80" alignment="CENTER" textFill="#7f8c8d"/>
+                    <Label text="Sat" prefWidth="80" alignment="CENTER" textFill="#e74c3c"/>
+                    <Label text="Sun" prefWidth="80" alignment="CENTER" textFill="#e74c3c"/>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+                    <content>
+                        <FlowPane fx:id="calendarLayout" hgap="10.0" vgap="10.0" alignment="CENTER"
+                                  style="-fx-padding: 20; -fx-background-color: #f4f6f8;" prefWrapLength="650.0" />
+                    </content>
+                </ScrollPane>
+            </VBox>
+
+            <VBox prefWidth="320.0" style="-fx-background-color: white; -fx-border-color: #ecf0f1; -fx-border-width: 0 0 0 1;">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+                <Label text="Task Details" textFill="#2c3e50">
+                    <font><Font name="System Bold" size="18.0"/></font>
+                </Label>
+
+                <Label fx:id="selectedDateLabel" text="Select a date" textFill="#7f8c8d">
+                    <font><Font size="14.0"/></font>
+                    <padding><Insets bottom="15"/></padding>
+                </Label>
+
+                <Line endX="280.0" stroke="#ecf0f1" />
+
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+                    <content>
+                        <VBox fx:id="tasksContainer" spacing="10.0" style="-fx-padding: 10 0 0 0;">
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </VBox>
+
+        </HBox>
+    </center>
+
+</BorderPane>

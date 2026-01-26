@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="500.0" prefWidth="450.0" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smarttask.smarttaskmanager.controller.AddTaskController">
+
+    <Label text="New Task" textFill="#2c3e50">
+        <font>
+            <Font name="System Bold" size="26.0" />
+        </font>
+        <VBox.margin>
+            <Insets bottom="10.0" />
+        </VBox.margin>
+    </Label>
+
+    <VBox spacing="8.0">
+        <Label text="Title:" textFill="#7f8c8d">
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font></Label>
+        <TextField fx:id="tfTitle" promptText="e.g., Complete project report" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;">
+            <font>
+                <Font size="14.0" />
+            </font></TextField>
+    </VBox>
+
+    <VBox spacing="8.0" VBox.vgrow="ALWAYS">
+        <Label text="Description:" textFill="#7f8c8d">
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font></Label>
+        <TextArea fx:id="taDescription" prefHeight="100.0" promptText="Add more details..." style="-fx-padding: 5; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-background-color: transparent;" wrapText="true">
+            <font>
+                <Font size="14.0" />
+            </font></TextArea>
+    </VBox>
+
+    <HBox spacing="20.0">
+        <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+            <Label text="Priority:" textFill="#7f8c8d">
+                <font>
+                    <Font name="System Bold" size="14.0" />
+                </font></Label>
+            <ComboBox fx:id="cbPriority" maxWidth="Infinity" style="-fx-padding: 5; -fx-font-size: 14px; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-background-color: white;">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="High" />
+                        <String fx:value="Medium" />
+                        <String fx:value="Low" />
+                    </FXCollections>
+                </items>
+                <value>
+                    <String fx:value="Medium" />
+                </value>
+            </ComboBox>
+        </VBox>
+
+        <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+            <Label text="Deadline:" textFill="#7f8c8d">
+                <font>
+                    <Font name="System Bold" size="14.0" />
+                </font></Label>
+            <DatePicker fx:id="dpDeadline" maxWidth="Infinity" promptText="Select date" style="-fx-padding: 5; -fx-font-size: 14px; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-background-color: white;" />
+        </VBox>
+    </HBox>
+
+    <HBox alignment="CENTER_RIGHT" spacing="15.0">
+        <VBox.margin>
+            <Insets top="20.0" />
+        </VBox.margin>
+        <Button onAction="#saveTask" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10 25; -fx-background-radius: 5; -fx-cursor: hand;" text="Save Task" />
+    </HBox>
+
+</VBox>
