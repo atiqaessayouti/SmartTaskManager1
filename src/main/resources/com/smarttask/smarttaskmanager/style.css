@@ -1,0 +1,60 @@
+/* --- CONFIGURATION DE BASE (LIGHT MODE PAR DÉFAUT) --- */
+.root {
+    -fx-base: #f1f2f6;
+    -fx-background-color: #f1f2f6;
+    -fx-font-family: 'Segoe UI', sans-serif;
+}
+
+/* --- BOUTONS --- */
+.button {
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 5;
+}
+
+/* --- CARTES --- */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+}
+
+/* --- TEXTES --- */
+.label-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3436;
+}
+.label-text {
+    -fx-text-fill: #636e72;
+}
+.header-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+.header-bar {
+    -fx-background-color: #2c3e50;
+    -fx-padding: 15px;
+}
+
+/* --- DARK MODE --- */
+.dark-mode {
+    -fx-base: #2d3436;
+    -fx-background-color: #2d3436;
+    -fx-control-inner-background: #2d3436;
+}
+.dark-mode .label-title { -fx-text-fill: white; }
+.dark-mode .label-text { -fx-text-fill: #b2bec3; }
+.dark-mode .card {
+    -fx-background-color: #353b48;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);
+}
+.dark-mode .table-view,
+.dark-mode .table-row-cell,
+.dark-mode .column-header-background {
+    -fx-background-color: #353b48;
+}
+.dark-mode .table-row-cell { -fx-text-fill: white; }
+.dark-mode .check-box .box { -fx-background-color: white; }
+.dark-mode .check-box { -fx-text-fill: white; }

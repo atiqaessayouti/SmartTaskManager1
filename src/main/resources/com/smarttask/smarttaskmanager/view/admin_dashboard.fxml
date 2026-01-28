@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane fx:id="mainBorderPane" prefHeight="720.0" prefWidth="1080.0"
+            stylesheets="@../style.css"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.smarttask.smarttaskmanager.controller.AdminDashboardController">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="header-bar">
+            <children>
+                <Label text="SMART TASK ADMIN" styleClass="header-title"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#toggleTheme" text="🌙 ☀️"
+                        style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                <Button onAction="#handleLogout" text="Logout"
+                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            </children>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+            <VBox spacing="25.0" style="-fx-padding: 30;">
+                <children>
+
+                    <Label text="📊 Analytics Dashboard" styleClass="label-title"/>
+
+                    <HBox spacing="20.0">
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" style="-fx-padding: 20; -fx-alignment: CENTER;">
+                            <Label text="Total Tasks" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14px;"/>
+                            <Label fx:id="lblTotalTasks" text="0" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+                        </VBox>
+
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" style="-fx-padding: 20; -fx-alignment: CENTER;">
+                            <Label text="Completed" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14px;"/>
+                            <Label fx:id="lblCompletedTasks" text="0" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+                        </VBox>
+
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" style="-fx-padding: 20; -fx-alignment: CENTER;">
+                            <Label text="Pending / In Progress" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14px;"/>
+                            <Label fx:id="lblPendingTasks" text="0" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="20.0">
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" style="-fx-padding: 15;">
+                            <Label text="Performance Trends (Tasks Completed)" styleClass="label-text" style="-fx-font-weight: bold;"/>
+                            <LineChart fx:id="performanceLineChart" prefHeight="250.0">
+                                <xAxis><CategoryAxis label="Timeline" side="BOTTOM" /></xAxis>
+                                <yAxis><NumberAxis label="Tasks" side="LEFT" /></yAxis>
+                            </LineChart>
+                        </VBox>
+
+                        <VBox prefWidth="400.0" styleClass="card" style="-fx-padding: 15;">
+                            <Label text="Time Tracking (Hours per Category)" styleClass="label-text" style="-fx-font-weight: bold;"/>
+                            <PieChart fx:id="timeTrackingPieChart" prefHeight="250.0" labelsVisible="true"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="15.0" styleClass="card" style="-fx-padding: 20;">
+                        <children>
+                            <HBox alignment="CENTER_LEFT" spacing="20.0">
+                                <Label text="User Management (CRUD)" styleClass="label-title"/>
+                                <Region HBox.hgrow="ALWAYS" />
+                                <TextField fx:id="searchField" promptText="🔍 Search..." prefWidth="200.0"/>
+                            </HBox>
+
+                            <TableView fx:id="userTable" prefHeight="300.0">
+                                <columns>
+                                    <TableColumn fx:id="colId" prefWidth="50.0" text="ID" />
+                                    <TableColumn fx:id="colEmail" prefWidth="250.0" text="Email" />
+                                    <TableColumn fx:id="colRole" prefWidth="100.0" text="Role" />
+                                    <TableColumn fx:id="colAction" prefWidth="200.0" text="Row Actions" />
+                                </columns>
+                            </TableView>
+
+                            <Separator />
+                            <Label text="Management Form" styleClass="label-text" style="-fx-font-weight: bold;"/>
+
+                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                <TextField fx:id="emailInput" promptText="Email" prefWidth="300.0"/>
+                                <TextField fx:id="passwordInput" promptText="Password (laisser vide si inchangé)" prefWidth="250.0"/>
+                                <CheckBox fx:id="isAdminInput" text="Is Admin?" style="-fx-font-weight: bold; -fx-text-fill: #2d3436;"/>
+                            </HBox>
+
+                            <HBox spacing="10.0">
+                                <Button onAction="#handleUpdateUser" text="✏️ Update User" prefWidth="150.0"
+                                        style="-fx-background-color: #f39c12; -fx-text-fill: white;"/>
+                                <Button onAction="#handleClear" text="❌ Clear Form" prefWidth="150.0"
+                                        style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
+                            </HBox>
+
+                            <HBox spacing="10.0">
+                                <Button onAction="#handleAddUser" text="➕ Add User" prefWidth="150.0"
+                                        style="-fx-background-color: #3498db; -fx-text-fill: white;"/>
+                                <Button onAction="#handlePromoteUser" text="Quick Promote" prefWidth="150.0"
+                                        style="-fx-background-color: #27ae60; -fx-text-fill: white;"/>
+                            </HBox>
+
+                        </children>
+                    </VBox>
+                </children>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

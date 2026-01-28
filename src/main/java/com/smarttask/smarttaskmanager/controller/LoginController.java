@@ -1,7 +1,6 @@
 package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
-import com.smarttask.smarttaskmanager.util.UserSession; // <--- IMPORT MOHIM JIDDAN
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +15,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class LoginController {
 
@@ -29,65 +29,60 @@ public class LoginController {
         String password = passwordField.getText();
 
         if (email.isEmpty() || password.isEmpty()) {
-            showError("Remplissez tous les champs.");
+            showError("Please fill in all fields.");
             return;
         }
 
+        // Utilisation du Singleton DatabaseConnection
         Connection connectDB = DatabaseConnection.getInstance().getConnection();
 
-        // ⚠️ Bddelna Query: Mabqinach baghin ghir n7sbu (count), baghin njibu Data (username, email)
-        // Ila kant colonne d mot de passe smitha "password" f database, bddli "password_hash" b "password"
-        String query = "SELECT email, username FROM users WHERE email = ? AND password_hash = ?";
+        // On récupère is_admin pour rediriger vers l'Analytics Dashboard si nécessaire
+        String query = "SELECT is_admin FROM users WHERE email = ? AND password_hash = ?";
 
-        try {
-            PreparedStatement statement = connectDB.prepareStatement(query);
+        try (PreparedStatement statement = connectDB.prepareStatement(query)) {
             statement.setString(1, email);
             statement.setString(2, password);
 
             ResultSet queryResult = statement.executeQuery();
 
-            // Ila lqina resultat (ya3ni login s7i7)
             if (queryResult.next()) {
-
-                // 1. Njibu Data mn Base de Données
-                String dbEmail = queryResult.getString("email");
-                String dbUsername = queryResult.getString("username");
-
-                // 2. N3mmru SESSION (Hna fin kanbda la mémoire)
-                UserSession.getInstace(dbEmail, dbUsername);
-
-                // 3. Login Naj7 -> Sir l Dashboard
-                goToDashboard(event);
-
+                boolean isAdmin = queryResult.getBoolean("is_admin");
+                goToDashboard(event, isAdmin);
             } else {
-                showError("Email ou mot de passe incorrect.");
+                showError("Invalid email or password.");
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-            showError("Erreur connexion base de données.");
+            showError("Database connection error.");
         }
     }
 
-    // Méthode bach tmchi l Dashboard
-    private void goToDashboard(ActionEvent event) {
+    private void goToDashboard(ActionEvent event, boolean isAdmin) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/dashboard.fxml"));
+            // Chemins basés sur ta structure de ressources
+            String fxmlPath = isAdmin
+                    ? "/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml"
+                    : "/com/smarttask/smarttaskmanager/view/dashboard.fxml";
+
+            String title = isAdmin ? "Smart Task - Admin Analytics" : "Smart Task - User Dashboard";
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Scene scene = new Scene(loader.load());
 
-            // Nakhdu l'fenêtre (Stage) l'7aliya w nbdluha
+            // Récupération de la fenêtre actuelle
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Smart Task Manager - Dashboard");
+            stage.setTitle(title);
             stage.setScene(scene);
             stage.centerOnScreen();
             stage.show();
 
         } catch (IOException e) {
+            // Affiche l'erreur précise dans la console pour le débogage Master
             e.printStackTrace();
-            showError("Erreur: Impossible de charger le Dashboard.");
+            showError("Critical Error: View not found (" + (isAdmin ? "Admin" : "User") + ").");
         }
     }
-
 
     @FXML
     public void handleGoToRegister(ActionEvent event) {
@@ -95,18 +90,15 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/register.fxml"));
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Smart Task Manager - Inscription");
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.out.println("Fichier register.fxml mal9inahch");
-            e.printStackTrace();
+            showError("Register view not found.");
         }
     }
 
     private void showError(String msg) {
         errorLabel.setText(msg);
-        errorLabel.setStyle("-fx-text-fill: red;");
         errorLabel.setVisible(true);
     }
 }

@@ -8,7 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.chart.PieChart;
+import javafx.scene.chart.PieChart; // Important Import
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
@@ -66,6 +66,7 @@ public class DashboardController {
     private void updateDashboardKPIs() {
         Connection connect = DatabaseConnection.getInstance().getConnection();
 
+        // DABA L'CODE WLLA KI9LLEB 3LA L'ANGLAIS
         String sqlInProgress = "SELECT COUNT(*) FROM tasks WHERE status = 'In Progress'";
         String sqlCompleted = "SELECT COUNT(*) FROM tasks WHERE status = 'Completed'";
         String sqlOverdue = "SELECT COUNT(*) FROM tasks WHERE status = 'Overdue'";
@@ -89,10 +90,8 @@ public class DashboardController {
             e.printStackTrace();
         }
     }
-
     // --- NAVIGATION METHODS ---
 
-    // 1. Tasks
     @FXML
     public void goToTasks(ActionEvent event) throws IOException {
         try {
@@ -106,7 +105,6 @@ public class DashboardController {
         }
     }
 
-    // 2. Profile
     @FXML
     public void goToProfile(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/profile.fxml"));
@@ -115,7 +113,6 @@ public class DashboardController {
         stage.show();
     }
 
-    // 3. Logout
     @FXML
     public void handleLogout(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/login.fxml"));
@@ -125,26 +122,14 @@ public class DashboardController {
         stage.show();
     }
 
-    // 4. Calendar (ZEDNAHA HNA ✅)
     @FXML
-    public void goToCalendar(ActionEvent event) {
+    public void handleNewTask(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/calendar.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(loader.load()));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // 5. Dashboard (ZEDNAHA HNA ✅ - Darouriya bach maycrashich l'bouton)
-    @FXML
-    public void goToDashboard(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/dashboard.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(loader.load()));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/add_task.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = new Stage();
+            stage.setTitle("Ajouter une tâche");
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
