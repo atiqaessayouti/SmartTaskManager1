@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -9,71 +11,69 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.smarttask.smarttaskmanager.controller.DashboardController">
+<BorderPane prefHeight="750.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smarttask.smarttaskmanager.controller.DashboardController">
 
     <left>
         <VBox spacing="15.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
             <Label text="SmartManager" textFill="WHITE">
                 <font><Font name="System Bold" size="20.0"/></font>
             </Label>
-
             <VBox spacing="10.0" VBox.vgrow="ALWAYS">
-                <Button text="Dashboard" onAction="#goToDashboard" maxWidth="Infinity" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
-
-                <Button text="My Tasks" onAction="#goToTasks" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
-
-                <Button text="Calendar" onAction="#goToCalendar" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
-
-                <Button text="Profile" onAction="#goToProfile" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+                <Button maxWidth="Infinity" onAction="#goToDashboard" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;" text="Dashboard" />
+                <Button fx:id="btnMyTasks" maxWidth="Infinity" onAction="#goToTasks" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;" text="My Tasks" />
+                <Button maxWidth="Infinity" onAction="#goToCalendar" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;" text="Calendar" />
+                <Button maxWidth="Infinity" onAction="#goToProfile" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;" text="Profile" />
             </VBox>
-
-            <Button text="Logout" onAction="#handleLogout" maxWidth="Infinity" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            <Button maxWidth="Infinity" onAction="#handleLogout" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;" text="Logout" />
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="30.0" style="-fx-background-color: #ecf0f1; -fx-padding: 30;">
+        <VBox spacing="20.0" style="-fx-background-color: #ecf0f1; -fx-padding: 25;">
 
             <HBox alignment="CENTER_LEFT" spacing="20.0">
-                <Label text="Dashboard">
+                <Label text="Dashboard Overview">
                     <font><Font name="System Bold" size="28.0"/></font>
                 </Label>
+                <HBox HBox.hgrow="ALWAYS" />
+                <Button onAction="#handleNewTask" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15;" text="+ New Task" />
+            </HBox>
 
-                <HBox HBox.hgrow="ALWAYS"/>
-
-                <Button text="+ New Task" onAction="#goToTasks"
-                        style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15;"/>
+            <HBox spacing="10" style="-fx-background-color: #9b59b6; -fx-background-radius: 5; -fx-padding: 10;">
+                <Label text="🤖 AI Insight:" textFill="WHITE" style="-fx-font-weight: bold;" />
+                <Label fx:id="aiSuggestionLabel" text="Loading smart suggestions..." textFill="WHITE" />
             </HBox>
 
             <HBox spacing="20.0">
-                <VBox spacing="5" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
-                    <Label text="In Progress" textFill="#f39c12"><font><Font name="System Bold" size="16.0"/></font></Label>
-                    <Label fx:id="lblEnCours" text="0" textFill="#2c3e50"><font><Font name="System Bold" size="36.0"/></font></Label>
+                <VBox HBox.hgrow="ALWAYS" spacing="5" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+                    <Label text="In Progress" textFill="#f39c12"><font><Font name="System Bold" size="14.0"/></font></Label>
+                    <Label fx:id="lblEnCours" text="0" textFill="#2c3e50"><font><Font name="System Bold" size="28.0"/></font></Label>
                 </VBox>
-
-                <VBox spacing="5" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
-                    <Label text="Completed" textFill="#27ae60"><font><Font name="System Bold" size="16.0"/></font></Label>
-                    <Label fx:id="lblTerminees" text="0" textFill="#2c3e50"><font><Font name="System Bold" size="36.0"/></font></Label>
+                <VBox HBox.hgrow="ALWAYS" spacing="5" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+                    <Label text="Completed" textFill="#27ae60"><font><Font name="System Bold" size="14.0"/></font></Label>
+                    <Label fx:id="lblTerminees" text="0" textFill="#2c3e50"><font><Font name="System Bold" size="28.0"/></font></Label>
                 </VBox>
-
-                <VBox spacing="5" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
-                    <Label text="Overdue" textFill="#c0392b"><font><Font name="System Bold" size="16.0"/></font></Label>
-                    <Label fx:id="lblEnRetard" text="0" textFill="#2c3e50"><font><Font name="System Bold" size="36.0"/></font></Label>
+                <VBox HBox.hgrow="ALWAYS" spacing="5" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+                    <Label text="Overdue" textFill="#c0392b"><font><Font name="System Bold" size="14.0"/></font></Label>
+                    <Label fx:id="lblEnRetard" text="0" textFill="#2c3e50"><font><Font name="System Bold" size="28.0"/></font></Label>
                 </VBox>
             </HBox>
 
             <HBox spacing="20.0" VBox.vgrow="ALWAYS">
-                <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
-                    <Label text="Statistics by Priority" textFill="#2c3e50">
-                        <font><Font name="System Bold" size="18.0"/></font>
-                    </Label>
+                <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                    <Label text="Task Distribution (Priority)" textFill="#2c3e50"><font><Font name="System Bold" size="16.0"/></font></Label>
+                    <PieChart fx:id="pieChartPriority" legendSide="BOTTOM" />
+                </VBox>
 
-                    <PieChart fx:id="pieChartPriority" title="Task Distribution" legendSide="RIGHT"/>
+                <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                    <Label text="Performance Trends" textFill="#2c3e50"><font><Font name="System Bold" size="16.0"/></font></Label>
+                    <BarChart fx:id="productivityChart">
+                        <xAxis><CategoryAxis label="Date" /></xAxis>
+                        <yAxis><NumberAxis label="Tasks" /></yAxis>
+                    </BarChart>
                 </VBox>
             </HBox>
 
         </VBox>
     </center>
-
 </BorderPane>

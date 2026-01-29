@@ -1,10 +1,12 @@
 package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
+import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -15,7 +17,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class LoginController {
 
@@ -24,63 +25,52 @@ public class LoginController {
     @FXML private Label errorLabel;
 
     @FXML
-    protected void handleLogin(ActionEvent event) {
+    public void handleLogin(ActionEvent event) {
         String email = emailField.getText();
         String password = passwordField.getText();
 
         if (email.isEmpty() || password.isEmpty()) {
-            showError("Please fill in all fields.");
+            showError("Veuillez remplir tous les champs.");
             return;
         }
 
-        // Utilisation du Singleton DatabaseConnection
-        Connection connectDB = DatabaseConnection.getInstance().getConnection();
+        String sql = "SELECT * FROM users WHERE email = ? AND password_hash = ?";
 
-        // On récupère is_admin pour rediriger vers l'Analytics Dashboard si nécessaire
-        String query = "SELECT is_admin FROM users WHERE email = ? AND password_hash = ?";
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
 
-        try (PreparedStatement statement = connectDB.prepareStatement(query)) {
-            statement.setString(1, email);
-            statement.setString(2, password);
+            prepare.setString(1, email);
+            prepare.setString(2, password);
 
-            ResultSet queryResult = statement.executeQuery();
+            ResultSet result = prepare.executeQuery();
 
-            if (queryResult.next()) {
-                boolean isAdmin = queryResult.getBoolean("is_admin");
-                goToDashboard(event, isAdmin);
+            if (result.next()) {
+                UserSession.getInstance().setEmail(email);
+                goToDashboard(event);
             } else {
-                showError("Invalid email or password.");
+                showError("Email ou mot de passe incorrect.");
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            showError("Database connection error.");
+            showError("Erreur de connexion.");
         }
     }
 
-    private void goToDashboard(ActionEvent event, boolean isAdmin) {
+    // 👇 C'EST CETTE MÉTHODE QUI MANQUAIT ET QUI CAUSE LE CRASH
+    @FXML
+    public void handleForgotPassword(ActionEvent event) {
         try {
-            // Chemins basés sur ta structure de ressources
-            String fxmlPath = isAdmin
-                    ? "/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml"
-                    : "/com/smarttask/smarttaskmanager/view/dashboard.fxml";
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/forgot_password.fxml"));
+            Parent root = loader.load();
 
-            String title = isAdmin ? "Smart Task - Admin Analytics" : "Smart Task - User Dashboard";
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Scene scene = new Scene(loader.load());
-
-            // Récupération de la fenêtre actuelle
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(scene);
-            stage.centerOnScreen();
+            stage.setTitle("Récupération Mot de Passe");
+            stage.setScene(new Scene(root));
             stage.show();
-
         } catch (IOException e) {
-            // Affiche l'erreur précise dans la console pour le débogage Master
             e.printStackTrace();
-            showError("Critical Error: View not found (" + (isAdmin ? "Admin" : "User") + ").");
+            System.err.println("Impossible de charger forgot_password.fxml. Vérifie que le fichier existe !");
         }
     }
 
@@ -88,17 +78,35 @@ public class LoginController {
     public void handleGoToRegister(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/register.fxml"));
-            Scene scene = new Scene(loader.load());
+            Parent root = loader.load();
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
+            stage.setTitle("Inscription");
+            stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            showError("Register view not found.");
+            e.printStackTrace();
         }
     }
 
-    private void showError(String msg) {
-        errorLabel.setText(msg);
+    private void goToDashboard(ActionEvent event) {
+        try {
+            // ✅ Khass y-koun dashboard.fxml bach t-shoufi les stats dyal l'Analytics
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/dashboard.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setTitle("Dashboard Overview");
+            stage.setScene(new Scene(root));
+            stage.centerOnScreen();
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showError(String message) {
+        errorLabel.setText(message);
         errorLabel.setVisible(true);
     }
 }

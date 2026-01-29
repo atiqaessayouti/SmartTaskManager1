@@ -1,106 +1,168 @@
-
 package com.smarttask.smarttaskmanager.controller;
 
-import com.smarttask.smarttaskmanager.model.Comment;
+import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class TaskDetailsController {
 
-    @FXML private Label lblTitle;
-    @FXML private Label lblDesc;
-    @FXML private Label lblStatus;
-    @FXML private TextField txtShareEmail;
-    @FXML private ListView<String> listComments;
-    @FXML private TextArea txtComment;
+    @FXML private TextField titleField;
+    @FXML private TextArea descriptionArea;
+    @FXML private TextField shareField;
+    @FXML private ListView<String> commentsList;
+    @FXML private TextField commentInput;
+    @FXML private Label lblSelectedFile; // <-- Label jdid
 
-    private int taskId;
+    private Task currentTask;
+    private File selectedFile; // <-- Variable bach nkhbbiw l'fichier
 
-    // Methode bach n3mmru les données mn Calendar/Dashboard
-    public void setTaskData(int id, String title, String desc, String status, String sharedWith) {
-        this.taskId = id;
-        lblTitle.setText(title);
-        lblDesc.setText(desc);
-        lblStatus.setText("Status: " + status);
-        if(sharedWith != null) txtShareEmail.setText(sharedWith);
+    // Initialisation
+    public void setTaskData(Task task) {
+        this.currentTask = task;
+        if (titleField != null) titleField.setText(task.getTitle());
+        if (descriptionArea != null) descriptionArea.setText(task.getDescription());
+        if (shareField != null) shareField.setText(task.getSharedWith());
 
-        loadComments(); // Charger les anciens messages
+        loadComments(); // Jib les commentaires
     }
 
-    // --- 1. CHARGER LES COMMENTAIRES ---
-    private void loadComments() {
-        ObservableList<String> items = FXCollections.observableArrayList();
-        String sql = "SELECT user_email, content FROM comments WHERE task_id = ? ORDER BY created_at ASC";
+    // --- 1. GESTION DES FICHIERS (ATTACHMENTS) ---
 
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setInt(1, taskId);
-            ResultSet rs = prep.executeQuery();
-
-            while(rs.next()) {
-                String user = rs.getString("user_email");
-                String msg = rs.getString("content");
-                // Format simple: "user: message"
-                items.add(user + ": \n" + msg);
-            }
-            listComments.setItems(items);
-
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    // --- 2. AJOUTER UN COMMENTAIRE ---
     @FXML
-    public void handleAddComment(ActionEvent event) {
-        String content = txtComment.getText();
-        if (content.isEmpty()) return;
+    public void handleAttachFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choisir un fichier à joindre");
+
+        // Filtre (Optionnel: Tqdri tkhllih yjib kulchi)
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Tous les fichiers", "*.*"),
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"),
+                new FileChooser.ExtensionFilter("PDF", "*.pdf")
+        );
+
+        // Jib l'fenêtre l7aliya bach t7ll foqha
+        Stage stage = (Stage) commentInput.getScene().getWindow();
+        this.selectedFile = fileChooser.showOpenDialog(stage);
+
+        if (this.selectedFile != null) {
+            lblSelectedFile.setText("Fichier sélectionné: " + this.selectedFile.getName());
+        }
+    }
+
+    // --- 2. ENVOYER COMMENTAIRE + FICHIER ---
+
+    @FXML
+    public void handleAddComment() {
+        String content = commentInput.getText();
+
+        // Ila makan la texte la fichier, ma ndiro walo
+        if (content.isEmpty() && selectedFile == null) return;
 
         String currentUser = UserSession.getInstance().getEmail();
-        String sql = "INSERT INTO comments (task_id, user_email, content) VALUES (?, ?, ?)";
 
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setInt(1, taskId);
-            prep.setString(2, currentUser);
-            prep.setString(3, content);
+        // Requete jdida fiha attachment_path
+        String sql = "INSERT INTO comments (task_id, user_email, content, attachment_path) VALUES (?, ?, ?, ?)";
 
-            prep.executeUpdate();
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
 
-            txtComment.clear();
-            loadComments(); // Refresh Chat
+            prepare.setInt(1, currentTask.getId());
+            prepare.setString(2, currentUser);
+            prepare.setString(3, content);
 
-        } catch (Exception e) { e.printStackTrace(); }
+            // Ila kan fichier, n7tto l'path dyalo, sinon Null
+            if (selectedFile != null) {
+                prepare.setString(4, selectedFile.getAbsolutePath());
+            } else {
+                prepare.setString(4, null);
+            }
+
+            prepare.executeUpdate();
+
+            // Reset (Nddfo l'blassa)
+            commentInput.clear();
+            selectedFile = null;
+            lblSelectedFile.setText("");
+
+            loadComments(); // Refresh
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    // --- 3. PARTAGER LA TACHE (SHARE) ---
+    // --- 3. CHARGEMENT DES COMMENTAIRES ---
+
+    private void loadComments() {
+        ObservableList<String> comments = FXCollections.observableArrayList();
+        // Nzidou attachment_path f Select
+        String sql = "SELECT user_email, content, created_at, attachment_path FROM comments WHERE task_id = ? ORDER BY created_at ASC";
+
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
+
+            prepare.setInt(1, currentTask.getId());
+            ResultSet result = prepare.executeQuery();
+
+            while (result.next()) {
+                String user = result.getString("user_email");
+                String content = result.getString("content");
+                String path = result.getString("attachment_path");
+
+                // Formatage: "User: Message"
+                String message = user + ": " + content;
+
+                // Ila kan fichier, nzidou icone 📎
+                if (path != null && !path.isEmpty()) {
+                    File f = new File(path);
+                    message += "  📎 [Fichier: " + f.getName() + "]";
+                }
+
+                comments.add(message);
+            }
+            commentsList.setItems(comments);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // --- 4. PARTAGE DE TÂCHE ---
+
     @FXML
-    public void handleShare(ActionEvent event) {
-        String emailToShare = txtShareEmail.getText();
-        if(emailToShare.isEmpty()) return;
+    public void handleShare() {
+        String emailToShare = shareField.getText();
+        if (emailToShare.isEmpty()) return;
 
         String sql = "UPDATE tasks SET shared_with = ? WHERE id = ?";
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setString(1, emailToShare);
-            prep.setInt(2, taskId);
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
 
-            int result = prep.executeUpdate();
-            if(result > 0) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Shared");
-                alert.setContentText("Task shared with " + emailToShare);
-                alert.showAndWait();
-            }
-        } catch (Exception e) { e.printStackTrace(); }
+            prepare.setString(1, emailToShare);
+            prepare.setInt(2, currentTask.getId());
+            prepare.executeUpdate();
+
+            showAlert("Succès", "Tâche partagée avec " + emailToShare);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.show();
     }
 }

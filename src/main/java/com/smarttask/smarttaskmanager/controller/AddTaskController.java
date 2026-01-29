@@ -1,5 +1,6 @@
 package com.smarttask.smarttaskmanager.controller;
 
+import com.smarttask.smarttaskmanager.service.AIService;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,55 +19,63 @@ public class AddTaskController {
     @FXML private DatePicker dpDeadline;
 
     @FXML
+    public void handleAISuggestion() {
+        String title = tfTitle.getText();
+        if (title == null || title.isEmpty()) return;
+
+        // Detection automatique
+        LocalDate suggestedDate = AIService.parseDate(title);
+        if (suggestedDate != null) {
+            dpDeadline.setValue(suggestedDate);
+        }
+
+        String suggestedPriority = AIService.suggestPriority(title);
+        cbPriority.setValue(suggestedPriority);
+    }
+
+    @FXML
     public void saveTask(ActionEvent event) {
         String title = tfTitle.getText();
         String description = taDescription.getText();
         String priority = cbPriority.getValue();
-        LocalDate deadline = dpDeadline.getValue();
+        LocalDate deadline = dpDeadline.getValue(); // Récupérer la date de l'AI
 
-        // Vérification
         if (title.isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Error", "Title is required!");
             return;
         }
 
+        // 4 "?" correspondants à : title, description, priority, deadline
         String sql = "INSERT INTO tasks (title, description, priority, status, deadline) VALUES (?, ?, ?, 'In Progress', ?)";
 
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prepare = connect.prepareStatement(sql);
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
+
             prepare.setString(1, title);
             prepare.setString(2, description);
-            prepare.setString(3, priority);
+            prepare.setString(3, priority != null ? priority : "Medium");
 
+            // Fix pour le Deadline NULL
             if (deadline != null) {
                 prepare.setDate(4, java.sql.Date.valueOf(deadline));
             } else {
-                prepare.setDate(4, null);
+                prepare.setNull(4, java.sql.Types.DATE);
             }
 
-            int result = prepare.executeUpdate();
-
-            if (result > 0) {
-                // ✅ ICI : On affiche le message de succès en anglais
+            if (prepare.executeUpdate() > 0) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Task added successfully!");
-
-                // Ensuite, on ferme la fenêtre
-                Stage stage = (Stage) tfTitle.getScene().getWindow();
-                stage.close();
+                ((Stage) tfTitle.getScene().getWindow()).close();
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Database error occurred.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Database error.");
         }
     }
 
-    // ✅ J'ai modifié cette méthode pour accepter le TYPE d'alerte (Information ou Erreur)
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
-        alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
     }

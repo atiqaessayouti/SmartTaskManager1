@@ -5,34 +5,56 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="15" style="-fx-padding: 20; -fx-background-color: white;" prefWidth="400" prefHeight="500" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.smarttask.smarttaskmanager.controller.TaskDetailsController">
+<VBox spacing="15" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.smarttask.smarttaskmanager.controller.TaskDetailsController"
+      style="-fx-padding: 20; -fx-background-color: white; -fx-pref-width: 450px;">
 
-    <Label text="Task Details" textFill="#2c3e50"><font><Font name="System Bold" size="18.0"/></font></Label>
+    <Label text="Détails de la Tâche" textFill="#2c3e50">
+        <font><Font name="System Bold" size="18.0"/></font>
+    </Label>
 
-    <VBox spacing="5" style="-fx-background-color: #ecf0f1; -fx-padding: 10; -fx-background-radius: 5;">
-        <Label fx:id="lblTitle" text="Titre de la tâche" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-        <Label fx:id="lblDesc" text="Description..." wrapText="true"/>
-        <Label fx:id="lblStatus" text="Status: In Progress" textFill="#7f8c8d"/>
+    <VBox spacing="5">
+        <Label text="Titre:" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="titleField" editable="false" style="-fx-background-color: #ecf0f1;"/>
     </VBox>
 
-    <Label text="Partager avec (Email):" style="-fx-font-weight: bold;"/>
-    <HBox spacing="10">
-        <TextField fx:id="txtShareEmail" promptText="ami@email.com" HBox.hgrow="ALWAYS"/>
-        <Button text="Share" onAction="#handleShare" style="-fx-background-color: #f39c12; -fx-text-fill: white;"/>
-    </HBox>
+    <VBox spacing="5">
+        <Label text="Description:" style="-fx-font-weight: bold;"/>
+        <TextArea fx:id="descriptionArea" editable="false" prefRowCount="3" wrapText="true" style="-fx-control-inner-background: #ecf0f1;"/>
+    </VBox>
 
-    <Label text="Commentaires / Chat" style="-fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+    <VBox spacing="5" style="-fx-background-color: #fcf3cf; -fx-padding: 10; -fx-background-radius: 5;">
+        <Label text="Partager cette tâche (Email):" style="-fx-font-weight: bold; -fx-text-fill: #d35400;"/>
+        <HBox spacing="10">
+            <TextField fx:id="shareField" promptText="ami@email.com" HBox.hgrow="ALWAYS"/>
+            <Button text="Partager" onAction="#handleShare" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-cursor: hand;"/>
+        </HBox>
+    </VBox>
 
-    <ListView fx:id="listComments" VBox.vgrow="ALWAYS" style="-fx-background-color: #f8f9fa;"/>
+    <VBox spacing="5" VBox.vgrow="ALWAYS">
+        <Label text="Commentaires &amp; Fichiers:" style="-fx-font-weight: bold; -fx-padding: 5 0 0 0;"/>
 
-    <HBox spacing="10">
-        <TextArea fx:id="txtComment" promptText="Écrire un commentaire..." prefHeight="40" wrapText="true" HBox.hgrow="ALWAYS"/>
-        <Button text="Send" onAction="#handleAddComment" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;"/>
-    </HBox>
+        <ListView fx:id="commentsList" VBox.vgrow="ALWAYS" prefHeight="200" style="-fx-background-color: #ecf0f1;"/>
+
+        <VBox spacing="2">
+            <Label fx:id="lblSelectedFile" text="" textFill="#27ae60" style="-fx-font-size: 11px; -fx-font-style: italic;"/>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button text="📎" onAction="#handleAttachFile" style="-fx-background-color: #bdc3c7; -fx-cursor: hand;">
+                    <tooltip>
+                        <Tooltip text="Joindre un fichier"/>
+                    </tooltip>
+                </Button>
+
+                <TextField fx:id="commentInput" promptText="Écrire un message..." HBox.hgrow="ALWAYS"/>
+                <Button text="Envoyer" onAction="#handleAddComment" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </VBox>
 
 </VBox>
