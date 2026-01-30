@@ -1,11 +1,12 @@
 package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
-import com.smarttask.smarttaskmanager.util.UserSession; // <--- IMPORT MOHIM JIDDAN
+import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -24,89 +25,88 @@ public class LoginController {
     @FXML private Label errorLabel;
 
     @FXML
-    protected void handleLogin(ActionEvent event) {
+    public void handleLogin(ActionEvent event) {
         String email = emailField.getText();
         String password = passwordField.getText();
 
         if (email.isEmpty() || password.isEmpty()) {
-            showError("Remplissez tous les champs.");
+            showError("Veuillez remplir tous les champs.");
             return;
         }
 
-        Connection connectDB = DatabaseConnection.getInstance().getConnection();
+        String sql = "SELECT * FROM users WHERE email = ? AND password_hash = ?";
 
-        // ⚠️ Bddelna Query: Mabqinach baghin ghir n7sbu (count), baghin njibu Data (username, email)
-        // Ila kant colonne d mot de passe smitha "password" f database, bddli "password_hash" b "password"
-        String query = "SELECT email, username FROM users WHERE email = ? AND password_hash = ?";
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
 
-        try {
-            PreparedStatement statement = connectDB.prepareStatement(query);
-            statement.setString(1, email);
-            statement.setString(2, password);
+            prepare.setString(1, email);
+            prepare.setString(2, password);
 
-            ResultSet queryResult = statement.executeQuery();
+            ResultSet result = prepare.executeQuery();
 
-            // Ila lqina resultat (ya3ni login s7i7)
-            if (queryResult.next()) {
-
-                // 1. Njibu Data mn Base de Données
-                String dbEmail = queryResult.getString("email");
-                String dbUsername = queryResult.getString("username");
-
-                // 2. N3mmru SESSION (Hna fin kanbda la mémoire)
-                UserSession.getInstace(dbEmail, dbUsername);
-
-                // 3. Login Naj7 -> Sir l Dashboard
+            if (result.next()) {
+                UserSession.getInstance().setEmail(email);
                 goToDashboard(event);
-
             } else {
                 showError("Email ou mot de passe incorrect.");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Erreur connexion base de données.");
+            showError("Erreur de connexion.");
         }
     }
 
-    // Méthode bach tmchi l Dashboard
-    private void goToDashboard(ActionEvent event) {
+    // 👇 C'EST CETTE MÉTHODE QUI MANQUAIT ET QUI CAUSE LE CRASH
+    @FXML
+    public void handleForgotPassword(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/dashboard.fxml"));
-            Scene scene = new Scene(loader.load());
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/forgot_password.fxml"));
+            Parent root = loader.load();
 
-            // Nakhdu l'fenêtre (Stage) l'7aliya w nbdluha
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Smart Task Manager - Dashboard");
-            stage.setScene(scene);
-            stage.centerOnScreen();
+            stage.setTitle("Récupération Mot de Passe");
+            stage.setScene(new Scene(root));
             stage.show();
-
         } catch (IOException e) {
             e.printStackTrace();
-            showError("Erreur: Impossible de charger le Dashboard.");
+            System.err.println("Impossible de charger forgot_password.fxml. Vérifie que le fichier existe !");
         }
     }
-
 
     @FXML
     public void handleGoToRegister(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/register.fxml"));
-            Scene scene = new Scene(loader.load());
+            Parent root = loader.load();
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Smart Task Manager - Inscription");
-            stage.setScene(scene);
+            stage.setTitle("Inscription");
+            stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            System.out.println("Fichier register.fxml mal9inahch");
             e.printStackTrace();
         }
     }
 
-    private void showError(String msg) {
-        errorLabel.setText(msg);
-        errorLabel.setStyle("-fx-text-fill: red;");
+    private void goToDashboard(ActionEvent event) {
+        try {
+            // ✅ Khass y-koun dashboard.fxml bach t-shoufi les stats dyal l'Analytics
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/dashboard.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setTitle("Dashboard Overview");
+            stage.setScene(new Scene(root));
+            stage.centerOnScreen();
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showError(String message) {
+        errorLabel.setText(message);
         errorLabel.setVisible(true);
     }
 }

@@ -1,3 +1,5 @@
+package com.smarttask.smarttaskmanager.model; // <--- Zidi hadi lfo9
+
 public class User {
     private int id;
     private String email;

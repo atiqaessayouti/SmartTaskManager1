@@ -1,26 +1,21 @@
 package com.smarttask.smarttaskmanager.controller;
 
+import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -29,296 +24,225 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CalendarController {
 
     @FXML private Label yearMonthLabel;
-    @FXML private FlowPane calendarLayout;
-
-    // --- SIDE PANEL IDs ---
-    @FXML private Label selectedDateLabel;
-    @FXML private VBox tasksContainer;
+    @FXML private GridPane calendarGrid; // Hada howa l'Jdid (GridPane)
+    @FXML private VBox taskListContainer; // Sidebar
 
     private YearMonth currentYearMonth;
-    private String userEmail;
+    private Task draggedTask = null; // Bach n3qlo 3la tache li hzzina
 
     @FXML
     public void initialize() {
-        // 1. Get User
-        UserSession session = UserSession.getInstance();
-        if (session != null) {
-            this.userEmail = session.getEmail();
-        }
-
-        // 2. Init Calendar
         currentYearMonth = YearMonth.now();
         drawCalendar();
-
-        // 3. Init Side Panel (Aujourd'hui)
-        selectedDateLabel.setText("Aujourd'hui: " + LocalDate.now());
-        showTasksForDate(LocalDate.now());
+        loadSideTasks(); // Chargi Sidebar
     }
 
-    // --- PARTIE 1 : DESSINER LE CALENDRIER (TARGET - CIBLE) ---
+    // --- 1. MOTEUR CALENDRIER (GRIDPANE) ---
     private void drawCalendar() {
-        calendarLayout.getChildren().clear();
-        yearMonthLabel.setText(currentYearMonth.getMonth().toString() + " " + currentYearMonth.getYear());
+        calendarGrid.getChildren().clear(); // Nddfo l'Grille
+        yearMonthLabel.setText(currentYearMonth.getMonth().name() + " " + currentYearMonth.getYear());
 
-        LocalDate firstOfMonth = currentYearMonth.atDay(1);
-        int dayOfWeek = firstOfMonth.getDayOfWeek().getValue();
-
-        // Padding (Cases vides)
-        for (int i = 1; i < dayOfWeek; i++) {
-            StackPane empty = new StackPane();
-            empty.setPrefSize(80, 80);
-            calendarLayout.getChildren().add(empty);
-        }
-
-        // Jours du mois
+        // 1. Hisab l'ayyam
+        LocalDate firstDayOfMonth = currentYearMonth.atDay(1);
+        int dayOfWeek = firstDayOfMonth.getDayOfWeek().getValue(); // 1=Monday
         int daysInMonth = currentYearMonth.lengthOfMonth();
+
+        int column = dayOfWeek - 1; // 0-based (Lun=0)
+        int row = 0;
+
+        // 2. Boucle 3la l'Ayyam
         for (int i = 1; i <= daysInMonth; i++) {
             LocalDate date = currentYearMonth.atDay(i);
 
-            StackPane dayPane = new StackPane();
-            dayPane.setPrefSize(80, 80);
-            dayPane.setStyle("-fx-background-color: white; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 0, 1); -fx-cursor: hand;");
+            // Boite dyal Nhar
+            VBox dayBox = new VBox();
+            dayBox.setMinHeight(100);
+            dayBox.setPadding(new Insets(5));
+            dayBox.setStyle("-fx-border-color: #ecf0f1; -fx-background-color: white;");
 
-            // Click -> Show Details
-            dayPane.setOnMouseClicked((MouseEvent event) -> {
-                showTasksForDate(date);
-            });
+            // Numero d Nhar
+            Label dayLabel = new Label(String.valueOf(i));
+            dayLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
 
-            // 🔥 DRAG OVER (Accept Drop)
-            dayPane.setOnDragOver((DragEvent event) -> {
-                if (event.getGestureSource() != dayPane && event.getDragboard().hasString()) {
-                    event.acceptTransferModes(TransferMode.MOVE);
-                }
-                event.consume();
-            });
-
-            // 🔥 DRAG DROPPED (Update DB)
-            dayPane.setOnDragDropped((DragEvent event) -> {
-                Dragboard db = event.getDragboard();
-                boolean success = false;
-                if (db.hasString()) {
-                    int taskId = Integer.parseInt(db.getString());
-                    updateTaskDate(taskId, date); // Changement de date
-                    success = true;
-                }
-                event.setDropCompleted(success);
-                event.consume();
-            });
-
-            // Numéro du jour (CORRIGÉ: COULEUR SOMBRE)
-            Label dayNum = new Label(String.valueOf(i));
-            dayNum.setStyle("-fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-font-size: 14;");
-
-            StackPane.setAlignment(dayNum, Pos.TOP_LEFT);
-            dayNum.setTranslateX(5); dayNum.setTranslateY(5);
-
-            // Badge (Points colorés)
-            int count = getTaskCountForDate(date);
-            if (count > 0) {
-                Label taskBadge = new Label(String.valueOf(count));
-                String color = count > 2 ? "#e74c3c" : "#2ecc71";
-                taskBadge.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-background-radius: 10; -fx-min-width: 20; -fx-alignment: center; -fx-font-size: 11px; -fx-font-weight: bold;");
-
-                StackPane.setAlignment(taskBadge, Pos.BOTTOM_RIGHT);
-                taskBadge.setTranslateX(-5); taskBadge.setTranslateY(-5);
-                dayPane.getChildren().add(taskBadge);
-            }
-
-            // Highlight Aujourd'hui
+            // Ila kan lyoum -> Louno 7mer
             if (date.equals(LocalDate.now())) {
-                dayPane.setStyle("-fx-background-color: #ecf0f1; -fx-border-color: #3498db; -fx-border-width: 2; -fx-background-radius: 5;");
+                dayLabel.setTextFill(Color.RED);
+                dayBox.setStyle("-fx-background-color: #fdf2f0; -fx-border-color: #ecf0f1;");
+            }
+            dayBox.getChildren().add(dayLabel);
+
+            // Jib les taches dyal had nhar
+            List<Task> tasks = getTasksForDate(date);
+            for (Task task : tasks) {
+                dayBox.getChildren().add(createTaskLabel(task));
             }
 
-            dayPane.getChildren().add(dayNum);
-            calendarLayout.getChildren().add(dayPane);
+            // Moteur Drop (Bach tstqbel Glissement)
+            setupDropZone(dayBox, date);
+
+            // Ajout l Grid
+            calendarGrid.add(dayBox, column, row);
+
+            // Ndouzou l nhar jay
+            column++;
+            if (column > 6) { // Ila wsselna Dimanche, hbet sster
+                column = 0;
+                row++;
+            }
         }
     }
 
-    // --- PARTIE 2 : SIDE PANEL (SOURCE - DRAG START & ACTIONS) ---
-    private void showTasksForDate(LocalDate date) {
-        selectedDateLabel.setText(date.format(DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy")));
-        tasksContainer.getChildren().clear();
+    // --- 2. DRAG & DROP LOGIC ---
 
-        String sql = "SELECT id, title, priority, status, description FROM tasks WHERE deadline = ? AND user_email = ?";
+    // Hada kayssayb Label w kay3tih l'qudra ythezz
+    private Label createTaskLabel(Task task) {
+        Label lbl = new Label(task.getTitle());
+        lbl.setMaxWidth(Double.MAX_VALUE);
 
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setDate(1, java.sql.Date.valueOf(date));
-            prep.setString(2, userEmail);
-            ResultSet rs = prep.executeQuery();
+        // Style 3la 7ssab Priority
+        String color = "High".equals(task.getPriority()) ? "#e74c3c" : "#3498db";
+        lbl.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 3; -fx-background-radius: 3; -fx-cursor: hand; -fx-font-size: 11px; -fx-margin: 2;");
 
-            boolean hasTasks = false;
-            while(rs.next()) {
-                hasTasks = true;
-                int taskId = rs.getInt("id"); // ID pour Actions & Drag
-                String title = rs.getString("title");
-                String priority = rs.getString("priority");
-                String status = rs.getString("status");
-                String description = rs.getString("description");
+        // START DRAG (Hzziti Tache)
+        lbl.setOnDragDetected(event -> {
+            draggedTask = task;
+            Dragboard db = lbl.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(task.getTitle());
+            db.setContent(content);
+            event.consume();
+        });
 
-                // --- CARD DESIGN ---
-                VBox card = new VBox(8);
-                card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-border-color: #ecf0f1; -fx-border-width: 1;");
+        // CLICK (Collaboration Popup)
+        lbl.setOnMouseClicked(e -> {
+            if (e.getButton() == MouseButton.PRIMARY) openTaskDetails(task);
+        });
 
-                // 🔥 DRAG DETECTED (Start Dragging)
-                card.setOnDragDetected((MouseEvent event) -> {
-                    Dragboard db = card.startDragAndDrop(TransferMode.MOVE);
-                    ClipboardContent content = new ClipboardContent();
-                    content.putString(String.valueOf(taskId));
-                    db.setContent(content);
-                    event.consume();
-                });
+        return lbl;
+    }
 
-                // Title
-                Label lblTitle = new Label(title);
-                lblTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2c3e50;");
-                lblTitle.setWrapText(true);
-
-                // Priority & Status
-                HBox metaBox = new HBox(10);
-                metaBox.setAlignment(Pos.CENTER_LEFT);
-
-                Label lblPriority = new Label(priority);
-                String pColor = "High".equalsIgnoreCase(priority) ? "#e74c3c" : ("Medium".equalsIgnoreCase(priority) ? "#f39c12" : "#2ecc71");
-                lblPriority.setStyle("-fx-text-fill: " + pColor + "; -fx-font-weight: bold; -fx-font-size: 10px; -fx-border-color: " + pColor + "; -fx-border-radius: 3; -fx-padding: 2 6;");
-
-                Label lblStatus = new Label("• " + status);
-                lblStatus.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 11px;");
-
-                metaBox.getChildren().addAll(lblPriority, lblStatus);
-
-                // Description
-                Label lblDesc = null;
-                if (description != null && !description.isEmpty()) {
-                    lblDesc = new Label(description);
-                    lblDesc.setStyle("-fx-text-fill: #95a5a6; -fx-font-size: 11px;");
-                    lblDesc.setWrapText(true);
-                }
-
-                // --- 🔥 ACTIONS (BOUTONS SUPPRIMER & TERMINER) 🔥 ---
-                HBox actionsBox = new HBox(10);
-                actionsBox.setAlignment(Pos.CENTER_RIGHT);
-                actionsBox.setStyle("-fx-padding: 5 0 0 0; -fx-border-color: #ecf0f1; -fx-border-width: 1 0 0 0;");
-
-                // Bouton Terminer (✔)
-                Button btnDone = new Button("✔");
-                btnDone.setStyle("-fx-background-color: #eafaf1; -fx-text-fill: #2ecc71; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-size: 11px; -fx-font-weight: bold;");
-                btnDone.setOnAction(e -> markTaskAsCompleted(taskId, date));
-
-                // Bouton Supprimer (🗑)
-                Button btnDelete = new Button("🗑");
-                btnDelete.setStyle("-fx-background-color: #fdedec; -fx-text-fill: #e74c3c; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-size: 11px; -fx-font-weight: bold;");
-                btnDelete.setOnAction(e -> deleteTask(taskId, date));
-
-                actionsBox.getChildren().addAll(btnDone, btnDelete);
-
-                // Add to Card
-                card.getChildren().addAll(lblTitle, metaBox);
-                if(lblDesc != null) card.getChildren().add(lblDesc);
-                card.getChildren().add(actionsBox);
-
-                tasksContainer.getChildren().add(card);
+    // Hada kaykhlli Nhar ystqbel Tache
+    private void setupDropZone(VBox dayBox, LocalDate targetDate) {
+        // DRAG OVER (Daz fo9o)
+        dayBox.setOnDragOver(event -> {
+            if (event.getGestureSource() != dayBox && event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+                dayBox.setStyle("-fx-background-color: #eafaf1;"); // Highlight Vert
             }
+            event.consume();
+        });
 
-            if (!hasTasks) {
-                Label empty = new Label("Aucune tâche pour ce jour.");
-                empty.setStyle("-fx-text-fill: #bdc3c7; -fx-font-style: italic; -fx-padding: 10;");
-                tasksContainer.getChildren().add(empty);
+        // DRAG EXIT (Khrj mn fo9o)
+        dayBox.setOnDragExited(event -> {
+            dayBox.setStyle("-fx-background-color: white;");
+            event.consume();
+        });
+
+        // DROP (Talqo)
+        dayBox.setOnDragDropped(event -> {
+            boolean success = false;
+            if (draggedTask != null) {
+                updateTaskDate(draggedTask.getId(), targetDate); // Update DB
+                success = true;
             }
+            event.setDropCompleted(success);
+            event.consume();
 
+            drawCalendar(); // Refresh Calendar
+            loadSideTasks(); // Refresh Sidebar
+        });
+    }
+
+    // --- 3. DATABASE OPERATIONS ---
+
+    private void loadSideTasks() {
+        taskListContainer.getChildren().clear();
+        // Hna 7iyydna "deadline IS NULL" bach yban lik KULCHI w tqdry t-testi
+        String sql = "SELECT * FROM tasks WHERE user_email = ? OR shared_with = ?";
+
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
+
+            prepare.setString(1, UserSession.getInstance().getEmail());
+            prepare.setString(2, UserSession.getInstance().getEmail());
+
+            ResultSet rs = prepare.executeQuery();
+            while (rs.next()) {
+                Task t = new Task(rs.getInt("id"), rs.getString("title"), null, rs.getString("priority"), null, null, null, null);
+
+                // Label spécial pour Sidebar (Gris)
+                Label l = createTaskLabel(t);
+                l.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 5; -fx-background-radius: 3; -fx-cursor: hand; -fx-margin: 2;");
+
+                taskListContainer.getChildren().add(l);
+            }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- HELPER METHODS ---
+    private List<Task> getTasksForDate(LocalDate date) {
+        List<Task> tasks = new ArrayList<>();
+        String sql = "SELECT * FROM tasks WHERE deadline = ? AND (user_email = ? OR shared_with = ?)";
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
+            prepare.setDate(1, java.sql.Date.valueOf(date));
+            prepare.setString(2, UserSession.getInstance().getEmail());
+            prepare.setString(3, UserSession.getInstance().getEmail());
+            ResultSet rs = prepare.executeQuery();
+            while (rs.next()) tasks.add(new Task(rs.getInt("id"), rs.getString("title"), rs.getString("description"), rs.getString("priority"), rs.getString("status"), rs.getDate("deadline").toLocalDate(), rs.getString("category"), rs.getString("shared_with")));
+        } catch (Exception e) { e.printStackTrace(); }
+        return tasks;
+    }
 
-    // 1. Update Date (Drag & Drop)
-    private void updateTaskDate(int taskId, LocalDate newDate) {
+    private void updateTaskDate(int id, LocalDate date) {
         String sql = "UPDATE tasks SET deadline = ? WHERE id = ?";
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setDate(1, java.sql.Date.valueOf(newDate));
-            prep.setInt(2, taskId);
-
-            int result = prep.executeUpdate();
-            if (result > 0) {
-                drawCalendar(); // Refresh dots
-                showTasksForDate(newDate); // Show tasks in new date
-            }
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
+            prepare.setDate(1, java.sql.Date.valueOf(date));
+            prepare.setInt(2, id);
+            prepare.executeUpdate();
+            System.out.println("Date mise à jour !");
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // 2. Delete Task
-    private void deleteTask(int taskId, LocalDate currentDate) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Supprimer ?");
-        alert.setHeaderText(null);
-        alert.setContentText("Voulez-vous vraiment supprimer cette tâche ?");
+    // --- 4. NAVIGATION & UTILS ---
 
-        if (alert.showAndWait().get() == ButtonType.OK) {
-            String sql = "DELETE FROM tasks WHERE id = ?";
-            try {
-                Connection connect = DatabaseConnection.getInstance().getConnection();
-                PreparedStatement prep = connect.prepareStatement(sql);
-                prep.setInt(1, taskId);
-                prep.executeUpdate();
-
-                // Refresh
-                drawCalendar();
-                showTasksForDate(currentDate);
-            } catch (Exception e) { e.printStackTrace(); }
-        }
-    }
-
-    // 3. Mark Done
-    private void markTaskAsCompleted(int taskId, LocalDate currentDate) {
-        String sql = "UPDATE tasks SET status = 'Completed' WHERE id = ?";
+    private void openTaskDetails(Task task) {
         try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setInt(1, taskId);
-            prep.executeUpdate();
-
-            // Refresh
-            showTasksForDate(currentDate);
-        } catch (Exception e) { e.printStackTrace(); }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/task_details.fxml"));
+            Parent root = loader.load();
+            TaskDetailsController c = loader.getController();
+            c.setTaskData(task);
+            Stage s = new Stage(); s.setTitle("Détails"); s.setScene(new Scene(root)); s.show();
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // 4. Count Tasks (For Dots)
-    private int getTaskCountForDate(LocalDate date) {
-        int count = 0;
-        String sql = "SELECT COUNT(*) FROM tasks WHERE deadline = ? AND user_email = ?";
-        try {
-            Connection connect = DatabaseConnection.getInstance().getConnection();
-            PreparedStatement prep = connect.prepareStatement(sql);
-            prep.setDate(1, java.sql.Date.valueOf(date));
-            prep.setString(2, userEmail);
-            ResultSet rs = prep.executeQuery();
-            if (rs.next()) count = rs.getInt(1);
-        } catch (Exception e) { e.printStackTrace(); }
-        return count;
-    }
-
-    // --- NAVIGATION ---
     @FXML public void previousMonth() { currentYearMonth = currentYearMonth.minusMonths(1); drawCalendar(); }
     @FXML public void nextMonth() { currentYearMonth = currentYearMonth.plusMonths(1); drawCalendar(); }
 
-    @FXML public void goToDashboard(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/dashboard.fxml"); }
-    @FXML public void goToTasks(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml"); }
-    @FXML public void goToProfile(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/profile.fxml"); }
-    @FXML public void goToCalendar(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/calendar.fxml"); }
-    @FXML public void handleLogout(ActionEvent event) { UserSession.getInstance().cleanUserSession(); navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml"); }
-
-    private void navigate(ActionEvent event, String path) {
+    @FXML public void handleAddTask(ActionEvent e) {
         try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/add_task.fxml"));
+            Stage s = new Stage(); s.setScene(new Scene(loader.load())); s.show();
+        } catch (IOException ex) { ex.printStackTrace(); }
+    }
+
+    @FXML public void goToDashboard(ActionEvent e) { navigate(e, "/com/smarttask/smarttaskmanager/view/dashboard.fxml"); }
+    @FXML public void goToTasks(ActionEvent e) { navigate(e, "/com/smarttask/smarttaskmanager/view/tasks.fxml"); }
+    @FXML public void goToCalendar(ActionEvent e) {} // Déjà ici
+    @FXML public void goToProfile(ActionEvent e) { navigate(e, "/com/smarttask/smarttaskmanager/view/profile.fxml"); }
+    @FXML public void handleLogout(ActionEvent e) { navigate(e, "/com/smarttask/smarttaskmanager/view/login.fxml"); }
+
+    private void navigate(ActionEvent event, String fxmlPath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(new FXMLLoader(getClass().getResource(path)).load()));
+            stage.setScene(new Scene(loader.load()));
             stage.show();
         } catch (IOException e) { e.printStackTrace(); }
     }
