@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class LoginController {
 
@@ -25,7 +26,7 @@ public class LoginController {
     @FXML private Label errorLabel;
 
     @FXML
-    public void handleLogin(ActionEvent event) {
+    protected void handleLogin(ActionEvent event) {
         String email = emailField.getText();
         String password = passwordField.getText();
 
@@ -34,43 +35,80 @@ public class LoginController {
             return;
         }
 
-        String sql = "SELECT * FROM users WHERE email = ? AND password_hash = ?";
+        Connection connectDB = DatabaseConnection.getInstance().getConnection();
 
-        try (Connection connect = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement prepare = connect.prepareStatement(sql)) {
+        // ✅ CORRECTED QUERY: On récupère 'role' (pas is_admin)
+        String query = "SELECT user_id, role FROM users WHERE email = ? AND password_hash = ?";
 
-            prepare.setString(1, email);
-            prepare.setString(2, password);
+        try (PreparedStatement statement = connectDB.prepareStatement(query)) {
+            statement.setString(1, email);
+            statement.setString(2, password);
 
-            ResultSet result = prepare.executeQuery();
+            ResultSet queryResult = statement.executeQuery();
 
-            if (result.next()) {
-                UserSession.getInstance().setEmail(email);
-                goToDashboard(event);
+            if (queryResult.next()) {
+                int userId = queryResult.getInt("user_id");
+
+                // ✅ CORRECTED LOGIC:
+                // La base de données retourne une String ("admin", "user", etc.)
+                String role = queryResult.getString("role");
+
+                // On vérifie si c'est admin
+                boolean isAdmin = "admin".equalsIgnoreCase(role);
+
+                // Initialiser la session
+                UserSession.getInstance(userId, email);
+
+                // Passer à la méthode de navigation
+                goToDashboard(event, isAdmin);
             } else {
                 showError("Email ou mot de passe incorrect.");
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-            showError("Erreur de connexion.");
+            showError("Erreur de connexion à la base de données.");
         }
     }
 
-    // 👇 C'EST CETTE MÉTHODE QUI MANQUAIT ET QUI CAUSE LE CRASH
-    @FXML
-    public void handleForgotPassword(ActionEvent event) {
+    private void goToDashboard(ActionEvent event, boolean isAdmin) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/forgot_password.fxml"));
+            String path;
+            String roleName;
+
+            // Définir le chemin EXACT selon le rôle
+            if (isAdmin) {
+                path = "/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml";
+                roleName = "Admin";
+            } else {
+                path = "/com/smarttask/smarttaskmanager/view/dashboard.fxml";
+                roleName = "User";
+            }
+
+            System.out.println("Tentative de chargement du fichier : " + path);
+
+            // Charger le fichier FXML
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
             Parent root = loader.load();
 
+            if (root == null) {
+                errorLabel.setText("Erreur : Fichier FXML introuvable !");
+                return;
+            }
+
+            // Changer la scène
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Récupération Mot de Passe");
             stage.setScene(new Scene(root));
+            stage.setTitle("Smart Task Manager - " + roleName);
+            stage.centerOnScreen();
             stage.show();
+
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Impossible de charger forgot_password.fxml. Vérifie que le fichier existe !");
+            errorLabel.setText("Erreur critique : Vue introuvable !");
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorLabel.setText("Erreur inconnue : " + e.getMessage());
         }
     }
 
@@ -78,35 +116,32 @@ public class LoginController {
     public void handleGoToRegister(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/register.fxml"));
-            Parent root = loader.load();
-
+            Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Inscription");
-            stage.setScene(new Scene(root));
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            showError("Vue Register introuvable.");
         }
     }
 
-    private void goToDashboard(ActionEvent event) {
+    @FXML
+    public void handleForgotPassword(ActionEvent event) {
         try {
-            // ✅ Khass y-koun dashboard.fxml bach t-shoufi les stats dyal l'Analytics
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/dashboard.fxml"));
-            Parent root = loader.load();
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/forgot_password.fxml"));
+            Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Dashboard Overview");
-            stage.setScene(new Scene(root));
-            stage.centerOnScreen();
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Erreur chargement forgot password: " + e.getMessage());
+            showError("Fonctionnalité non disponible.");
         }
     }
 
-    private void showError(String message) {
-        errorLabel.setText(message);
+    private void showError(String msg) {
+        errorLabel.setText(msg);
         errorLabel.setVisible(true);
     }
 }

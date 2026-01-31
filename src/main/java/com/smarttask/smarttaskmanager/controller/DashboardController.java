@@ -1,7 +1,12 @@
 package com.smarttask.smarttaskmanager.controller;
 
+// 👇 HADU HUMA LI KANO NAQSIN (Imports)
+import com.smarttask.smarttaskmanager.DAO.TaskDAO;
+import com.smarttask.smarttaskmanager.model.Task;
+import com.smarttask.smarttaskmanager.service.AIService;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -22,6 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.List; // 👈 Hada darouri bach t-khdem List<Task>
 
 public class DashboardController {
 
@@ -37,11 +43,37 @@ public class DashboardController {
     public void initialize() {
         updateDashboardKPIs();
         loadPieChartData();
-        loadPerformanceTrends(); // Fix Point 5.3 PDF
-        checkNotifications(); // Point 3.3 PDF
+        loadPerformanceTrends();
+        checkNotifications();
+        loadAIInsights(); // ✅ Dabba ghadi t-khdem bla error
     }
 
-    // --- 📊 ANALYTICS & TRENDS (Point 5 PDF) ---
+    // --- 🤖 AI INSIGHTS ---
+    private void loadAIInsights() {
+        // 1. Thread Jdid bach l-interface mat-bloquach
+        new Thread(() -> {
+            try {
+                // 2. Jbed Tasks
+                TaskDAO taskDAO = new TaskDAO();
+                List<Task> tasks = taskDAO.getAllTasks();
+
+                // 3. Hder m3a Gemini
+                AIService aiService = new AIService();
+                String insight = aiService.getProductivityInsights(tasks);
+
+                // 4. Affichi Jawab
+                javafx.application.Platform.runLater(() -> {
+                    if (aiSuggestionLabel != null) {
+                        aiSuggestionLabel.setText("💡 AI Tip: " + insight);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    // --- 📊 ANALYTICS & TRENDS ---
     private void loadPerformanceTrends() {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Tasks Completed");
@@ -57,14 +89,10 @@ public class DashboardController {
             }
             if (productivityChart != null) productivityChart.getData().add(series);
 
-            // 🤖 AI Insights (Point 2.3 PDF)
-            if (aiSuggestionLabel != null) {
-                aiSuggestionLabel.setText("AI Insight: You are 15% more productive than last week!");
-            }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- 🔔 NOTIFICATIONS (Point 3.3 PDF) ---
+    // --- 🔔 NOTIFICATIONS ---
     private void checkNotifications() {
         String currentUser = UserSession.getInstance().getEmail();
         String sql = "SELECT COUNT(*) FROM tasks WHERE shared_with = ? AND status != 'Completed'";
@@ -82,33 +110,27 @@ public class DashboardController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- 🚀 NAVIGATION FIX (LoadException Fix) ---
-    @FXML
-    public void goToDashboard(ActionEvent event) { System.out.println("Déjà sur le Dashboard"); }
+    // --- 🚀 NAVIGATION ---
+    @FXML public void goToDashboard(ActionEvent event) { System.out.println("Déjà sur le Dashboard"); }
 
-    @FXML
-    public void goToCalendar(ActionEvent event) {
+    @FXML public void goToCalendar(ActionEvent event) {
         navigate(event, "/com/smarttask/smarttaskmanager/view/calendar_view.fxml", "Calendrier");
     }
 
-    @FXML
-    public void goToTasks(ActionEvent event) {
+    @FXML public void goToTasks(ActionEvent event) {
         navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml", "Mes Tâches");
     }
 
-    @FXML
-    public void goToProfile(ActionEvent event) {
+    @FXML public void goToProfile(ActionEvent event) {
         navigate(event, "/com/smarttask/smarttaskmanager/view/profile.fxml", "Profil");
     }
 
-    @FXML
-    public void handleLogout(ActionEvent event) {
+    @FXML public void handleLogout(ActionEvent event) {
         UserSession.getInstance().cleanUserSession();
         navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml", "Login");
     }
 
-    @FXML
-    public void handleNewTask(ActionEvent event) {
+    @FXML public void handleNewTask(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/add_task.fxml"));
             Stage s = new Stage(); s.setScene(new Scene(loader.load())); s.show();

@@ -44,7 +44,7 @@ public class AdminDashboardController {
 
     @FXML private TextField emailInput;
     @FXML private TextField passwordInput;
-    @FXML private CheckBox isAdminInput; // <--- NOUVEAU : Case à cocher Admin
+    @FXML private CheckBox isAdminInput; // Case à cocher pour Admin
     @FXML private TextField searchField;
 
     private ObservableList<User> userList = FXCollections.observableArrayList();
@@ -110,7 +110,8 @@ public class AdminDashboardController {
     // --- 3. CHARGEMENT DONNÉES (CRUD) ---
     private void loadData() {
         userList.clear();
-        String query = "SELECT user_id, email, is_admin FROM users";
+        // ✅ CORRECTION 1: On select 'role' au lieu de 'is_admin'
+        String query = "SELECT user_id, email, role FROM users";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement st = conn.createStatement();
@@ -119,8 +120,8 @@ public class AdminDashboardController {
             while (rs.next()) {
                 int id = rs.getInt("user_id");
                 String email = rs.getString("email");
-                boolean isAdmin = rs.getBoolean("is_admin");
-                String role = isAdmin ? "Admin" : "User";
+                String role = rs.getString("role"); // On récupère la string "admin" ou "user"
+
                 userList.add(new User(id, email, role));
             }
             userTable.setItems(userList);
@@ -141,14 +142,17 @@ public class AdminDashboardController {
             return;
         }
 
-        // Récupère l'état de la checkbox pour l'ajout aussi
-        int isAdmin = isAdminInput.isSelected() ? 1 : 0;
+        // ✅ CORRECTION 2: On transforme la CheckBox en String "admin" ou "user"
+        String role = isAdminInput.isSelected() ? "admin" : "user";
 
+        // ✅ CORRECTION SQL: On utilise la colonne 'role'
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pst = conn.prepareStatement("INSERT INTO users (email, password_hash, is_admin) VALUES (?, ?, ?)")) {
+             PreparedStatement pst = conn.prepareStatement("INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)")) {
+
             pst.setString(1, emailInput.getText());
             pst.setString(2, passwordInput.getText());
-            pst.setInt(3, isAdmin);
+            pst.setString(3, role); // On envoie le String, PAS le TableColumn
+
             pst.executeUpdate();
 
             loadData();
@@ -169,7 +173,8 @@ public class AdminDashboardController {
 
         String newEmail = emailInput.getText();
         String newPass = passwordInput.getText();
-        int isAdmin = isAdminInput.isSelected() ? 1 : 0; // Récupère 1 ou 0
+        // ✅ CORRECTION 3: Logic role pour update
+        String role = isAdminInput.isSelected() ? "admin" : "user";
 
         if (newEmail.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Attention", "L'email ne peut pas être vide.");
@@ -178,10 +183,11 @@ public class AdminDashboardController {
 
         // SCÉNARIO 1 : Mot de passe vide -> On met à jour Email + Role
         if (newPass.isEmpty()) {
+            // ✅ CORRECTION SQL
             try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, is_admin = ? WHERE user_id = ?")) {
+                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, role = ? WHERE user_id = ?")) {
                 pst.setString(1, newEmail);
-                pst.setInt(2, isAdmin);
+                pst.setString(2, role); // setString, pas setInt
                 pst.setInt(3, selectedUserId);
                 pst.executeUpdate();
 
@@ -192,11 +198,12 @@ public class AdminDashboardController {
         }
         // SCÉNARIO 2 : Mot de passe rempli -> On met à jour TOUT
         else {
+            // ✅ CORRECTION SQL
             try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, password_hash = ?, is_admin = ? WHERE user_id = ?")) {
+                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, password_hash = ?, role = ? WHERE user_id = ?")) {
                 pst.setString(1, newEmail);
                 pst.setString(2, newPass);
-                pst.setInt(3, isAdmin);
+                pst.setString(3, role); // setString
                 pst.setInt(4, selectedUserId);
                 pst.executeUpdate();
 
@@ -209,10 +216,10 @@ public class AdminDashboardController {
 
     @FXML
     private void handlePromoteUser() {
-        // Raccourci pour promouvoir admin sans éditer tout le formulaire
         if (selectedUserId != -1) {
+            // ✅ CORRECTION SQL: Update role = 'admin'
             try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET is_admin = 1 WHERE user_id = ?")) {
+                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET role = 'admin' WHERE user_id = ?")) {
                 pst.setInt(1, selectedUserId);
                 pst.executeUpdate();
                 loadData();
@@ -227,7 +234,7 @@ public class AdminDashboardController {
     private void handleClear() {
         emailInput.clear();
         passwordInput.clear();
-        if (isAdminInput != null) isAdminInput.setSelected(false); // Remise à zéro CheckBox
+        if (isAdminInput != null) isAdminInput.setSelected(false);
         selectedUserId = -1;
     }
 
@@ -254,11 +261,11 @@ public class AdminDashboardController {
                 btnEdit.setOnAction(e -> {
                     User u = getTableView().getItems().get(getIndex());
                     emailInput.setText(u.getEmail());
-                    passwordInput.setText(""); // Sécurité
+                    passwordInput.setText("");
 
-                    // On coche la case si l'utilisateur est Admin
+                    // ✅ CORRECTION: On vérifie si le rôle (String) est "admin"
                     if (isAdminInput != null) {
-                        isAdminInput.setSelected(u.getRole().equalsIgnoreCase("Admin"));
+                        isAdminInput.setSelected("admin".equalsIgnoreCase(u.getRole()));
                     }
 
                     selectedUserId = u.getId();
