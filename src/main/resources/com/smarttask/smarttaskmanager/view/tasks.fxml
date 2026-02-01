@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="tasksRoot" prefHeight="700.0" prefWidth="1050.0"
+            style="-fx-background-color: #f4f7f6;"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.smarttask.smarttaskmanager.controller.TasksController">
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 20; -fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <children>
+                <Button onAction="#goToDashboard" text="🏠 Dashboard"
+                        style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 15;"/>
+                <Label text="📋 My Task Cards" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <TextField fx:id="searchField" promptText="🔍 Search tasks..." prefWidth="250.0"
+                           style="-fx-background-radius: 20; -fx-padding: 8 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;"/>
+                <Button onAction="#handleAddTask" text="+ New Task"
+                        style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 20;"/>
+            </children>
+        </HBox>
+    </top>
     <center>
-        <Label text="Page Tasks - Khddama Mzyan!"/>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+            <content>
+                <FlowPane fx:id="tasksContainer" hgap="25" vgap="25" style="-fx-padding: 30;">
+                </FlowPane>
+            </content>
+        </ScrollPane>
     </center>
 </BorderPane>
