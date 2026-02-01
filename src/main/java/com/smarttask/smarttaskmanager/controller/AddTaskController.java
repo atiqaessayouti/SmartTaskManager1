@@ -22,18 +22,40 @@ public class AddTaskController {
     @FXML private TextArea taDescription;
     @FXML private ComboBox<String> cbPriority;
     @FXML private DatePicker dpDeadline;
-
-    // Nouveaux champs pour Sous-tâches et Récurrence
     @FXML private ComboBox<String> cbRecurrence;
     @FXML private ComboBox<Task> cbParentTask;
+    @FXML private Button btnSave; // ✅ Zid fx:id="btnSave" f SceneBuilder
+
+    // 👇 VARIABLES JDAD BACH N-GÉREW L-EDIT
+    private boolean isEditMode = false;
+    private int taskIdToEdit = -1;
 
     @FXML
     public void initialize() {
-        // Charger la liste des tâches existantes pour pouvoir créer des sous-tâches
         loadParentTasks();
+        // Initialiser Priority s'il est vide
+        if(cbPriority.getItems().isEmpty()) {
+            cbPriority.getItems().addAll("High", "Medium", "Low");
+        }
+    }
+
+    // 👇 HADI METHODE MOHIMMA: Hiya li kat-stqbl data mn TasksController
+    public void setTaskData(Task task) {
+        this.isEditMode = true;
+        this.taskIdToEdit = task.getId();
+
+        // Remplir les champs
+        tfTitle.setText(task.getTitle());
+        taDescription.setText(task.getDescription());
+        cbPriority.setValue(task.getPriority());
+        dpDeadline.setValue(task.getDeadline());
+
+        // Changement dyal titre l-bouton (Optionnel)
+        if(btnSave != null) btnSave.setText("Mettre à jour");
     }
 
     private void loadParentTasks() {
+        // (Khlli l-code dyalk hna kif ma kan)
         ObservableList<Task> tasks = FXCollections.observableArrayList();
         String sql = "SELECT id, title FROM tasks WHERE user_email = ?";
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
@@ -44,21 +66,16 @@ public class AddTaskController {
                 tasks.add(new Task(rs.getInt("id"), rs.getString("title"), null, null, null, null, null, null));
             }
             cbParentTask.setItems(tasks);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
     public void handleAISuggestion() {
+        // (Khlli l-code dyalk hna kif ma kan)
         String title = tfTitle.getText();
         if (title == null || title.isEmpty()) return;
-
         LocalDate suggestedDate = AIService.parseDate(title);
-        if (suggestedDate != null) {
-            dpDeadline.setValue(suggestedDate);
-        }
-
+        if (suggestedDate != null) dpDeadline.setValue(suggestedDate);
         String suggestedPriority = AIService.suggestPriority(title);
         cbPriority.setValue(suggestedPriority);
     }
@@ -69,17 +86,22 @@ public class AddTaskController {
         String description = taDescription.getText();
         String priority = cbPriority.getValue();
         LocalDate deadline = dpDeadline.getValue();
-
         String recurrence = cbRecurrence.getValue() != null ? cbRecurrence.getValue() : "NONE";
-        Task parentTask = cbParentTask.getValue();
 
+        // Validation simple
         if (title.isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Error", "Title is required!");
             return;
         }
 
-        // SQL mis à jour avec parent_id et recurrence_type
-        String sql = "INSERT INTO tasks (title, description, priority, status, deadline, user_email, parent_id, recurrence_type) VALUES (?, ?, ?, 'In Progress', ?, ?, ?, ?)";
+        String sql;
+
+        // 👇 HNA L-FERQ: UPDATE OLA INSERT
+        if (isEditMode) {
+            sql = "UPDATE tasks SET title=?, description=?, priority=?, deadline=?, recurrence_type=? WHERE id=?";
+        } else {
+            sql = "INSERT INTO tasks (title, description, priority, status, deadline, recurrence_type, user_email) VALUES (?, ?, ?, 'In Progress', ?, ?, ?)";
+        }
 
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
              PreparedStatement prepare = connect.prepareStatement(sql)) {
@@ -88,32 +110,28 @@ public class AddTaskController {
             prepare.setString(2, description);
             prepare.setString(3, priority != null ? priority : "Medium");
 
-            if (deadline != null) {
-                prepare.setDate(4, java.sql.Date.valueOf(deadline));
+            if (deadline != null) prepare.setDate(4, java.sql.Date.valueOf(deadline));
+            else prepare.setNull(4, java.sql.Types.DATE);
+
+            prepare.setString(5, recurrence);
+
+            if (isEditMode) {
+                // Parametre d l-Update (ID)
+                prepare.setInt(6, taskIdToEdit);
             } else {
-                prepare.setNull(4, java.sql.Types.DATE);
+                // Parametre d l-Insert (Email)
+                prepare.setString(6, UserSession.getInstance().getEmail());
             }
-
-            prepare.setString(5, UserSession.getInstance().getEmail());
-
-            // Parent ID pour les sous-tâches
-            if (parentTask != null) {
-                prepare.setInt(6, parentTask.getId());
-            } else {
-                prepare.setNull(6, java.sql.Types.INTEGER);
-            }
-
-            // Type de récurrence
-            prepare.setString(7, recurrence);
 
             if (prepare.executeUpdate() > 0) {
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Task added successfully!");
+                showAlert(Alert.AlertType.INFORMATION, "Success", isEditMode ? "Task updated!" : "Task added!");
+                // Fermer la fenêtre
                 ((Stage) tfTitle.getScene().getWindow()).close();
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Database error.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Database error: " + e.getMessage());
         }
     }
 

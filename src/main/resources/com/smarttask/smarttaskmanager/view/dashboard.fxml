@@ -38,6 +38,10 @@
                     <font><Font name="System Bold" size="28.0"/></font>
                 </Label>
                 <HBox HBox.hgrow="ALWAYS" />
+
+                <Button onAction="#handleExportPDF" text="📄 Export PDF"
+                        style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 15; -fx-background-radius: 5;" />
+
                 <Button onAction="#handleNewTask" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15;" text="+ New Task" />
             </HBox>
 

@@ -26,6 +26,13 @@ public class RegisterController {
     @FXML
     private PasswordField pfPassword;
 
+    // ✅ METHODE J'DIDA: Vérification dyal format Email (Regex)
+    private boolean isValidEmail(String email) {
+        // Hada howa l-Pattern (L-Qaleb) dyal email s7i7
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email.matches(emailRegex);
+    }
+
     // Quand on clique sur le bouton "Register"
     @FXML
     public void handleRegister(ActionEvent event) {
@@ -39,7 +46,13 @@ public class RegisterController {
             return;
         }
 
-        // 2. Insérer dans la base de données
+        // 🛑 2. VERIFICATION EMAIL (HNA FIN KAN-BLOQUIW L-KHOUT)
+        if (!isValidEmail(email)) {
+            showAlert(Alert.AlertType.ERROR, "Email Invalide", "L'email n'est pas valide (Ex: test@gmail.com).");
+            return; // Stop, ma-t-kmmlich l-code
+        }
+
+        // 3. Insérer dans la base de données
         String insertSql = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
 
         Connection connect = DatabaseConnection.getInstance().getConnection();
@@ -48,12 +61,12 @@ public class RegisterController {
             PreparedStatement prepare = connect.prepareStatement(insertSql);
             prepare.setString(1, username);
             prepare.setString(2, email);
-            prepare.setString(3, password); // Attention: Idéalement, on crypte le mot de passe ici
+            prepare.setString(3, password);
 
             int result = prepare.executeUpdate();
 
             if (result > 0) {
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Accound was created successufully ! Login now .");
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Account created successfully! Login now.");
                 // Rediriger vers le Login
                 goToLogin(event);
             } else {

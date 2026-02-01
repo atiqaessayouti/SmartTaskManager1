@@ -4,6 +4,7 @@ import com.smarttask.smarttaskmanager.DAO.TaskDAO;
 import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.service.AIService;
 import com.smarttask.smarttaskmanager.service.NotificationService;
+import com.smarttask.smarttaskmanager.service.PDFExportService; // ✅ Import dyal PDF
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
 
@@ -19,12 +20,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-// 👇 ZIDNA HADU (Imports d l-Popup)
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ButtonBar;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -63,6 +59,10 @@ public class DashboardController {
         loadAIInsights();
     }
 
+    // ---------------------------------------------------------
+    // 🟢 PARTIE 1 : NOTIFICATIONS & POPUP
+    // ---------------------------------------------------------
+
     private void startNotificationService() {
         try {
             notifService = new NotificationService(this);
@@ -73,7 +73,6 @@ public class DashboardController {
         }
     }
 
-    // ✅ MODIFIÉ : Zidna l-Appel l showInvitationDialog
     public void addNotificationToQueue(int taskId, String type, String message, boolean isUrgent) {
         System.out.println("📞 Reçu notification : " + message);
         Platform.runLater(() -> {
@@ -82,14 +81,12 @@ public class DashboardController {
                 aiSuggestionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: #e74c3c; -fx-padding: 5px;");
             }
 
-            // 👇 HNA FIN KAN-TEL3O L-POPUP
             if (type.equals("INVITE")) {
                 showInvitationDialog(taskId, message);
             }
         });
     }
 
-    // ✅ NOUVEAU : Popup bach t-Accepti l-invitation
     private void showInvitationDialog(int taskId, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("📩 Invitation Reçue");
@@ -111,7 +108,6 @@ public class DashboardController {
         });
     }
 
-    // ✅ NOUVEAU : Update SQL Status
     private void updateShareStatus(int taskId, String status) {
         String sql = "UPDATE tasks SET share_status = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -126,8 +122,8 @@ public class DashboardController {
                     aiSuggestionLabel.setText("✅ Tâche " + status + " !");
                     aiSuggestionLabel.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 5px;");
                 }
-                updateDashboardKPIs(); // Refresh KPIs
-                checkNotifications();  // Refresh Badge
+                updateDashboardKPIs();
+                checkNotifications();
             });
             System.out.println("✅ Tâche " + taskId + " : " + status);
 
@@ -136,7 +132,49 @@ public class DashboardController {
         }
     }
 
-    // --- LE RESTE DU CODE (SANS CHANGEMENT) ---
+    // ---------------------------------------------------------
+    // 🟢 PARTIE 2 : EXPORT PDF (Zidna hadchi hna)
+    // ---------------------------------------------------------
+
+    @FXML
+    public void handleExportPDF() {
+        try {
+            // 1. Jib les Tâches
+            TaskDAO taskDAO = new TaskDAO();
+            List<Task> tasks = taskDAO.getAllTasks();
+
+            if (tasks.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Attention", "Aucune tâche à exporter !");
+                return;
+            }
+
+            // 2. Chemin du fichier (Bureau)
+            String path = System.getProperty("user.home") + "/Desktop/MesTaches_SmartManager.pdf";
+
+            // 3. Génération
+            PDFExportService pdfService = new PDFExportService();
+            pdfService.exportTasksToPDF(tasks, path);
+
+            // 4. Succès
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "PDF exporté sur le Bureau !\n" + path);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Problème lors de l'export PDF.");
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.show();
+    }
+
+    // ---------------------------------------------------------
+    // 🟢 PARTIE 3 : AI & DATA (Standard)
+    // ---------------------------------------------------------
+
     private void loadAIInsights() {
         new Thread(() -> {
             try {
@@ -154,6 +192,9 @@ public class DashboardController {
     }
 
     private void loadPerformanceTrends() {
+        if (productivityChart == null) return;
+        productivityChart.getData().clear();
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Tasks Completed");
         String sql = "SELECT deadline, COUNT(*) as total FROM tasks WHERE status = 'Completed' GROUP BY deadline ORDER BY deadline LIMIT 7";
@@ -163,7 +204,7 @@ public class DashboardController {
             while (result.next()) {
                 series.getData().add(new XYChart.Data<>(result.getString("deadline"), result.getInt("total")));
             }
-            if (productivityChart != null) productivityChart.getData().add(series);
+            productivityChart.getData().add(series);
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -184,10 +225,15 @@ public class DashboardController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    // ---------------------------------------------------------
+    // 🟢 PARTIE 4 : NAVIGATION
+    // ---------------------------------------------------------
+
     @FXML public void goToDashboard(ActionEvent event) { System.out.println("Déjà sur le Dashboard"); }
     @FXML public void goToCalendar(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/calendar_view.fxml", "Calendrier"); }
     @FXML public void goToTasks(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml", "Mes Tâches"); }
     @FXML public void goToProfile(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/profile.fxml", "Profil"); }
+
     @FXML public void handleLogout(ActionEvent event) {
         if (notifService != null) notifService.stopService();
         UserSession.getInstance().cleanUserSession();
@@ -216,14 +262,23 @@ public class DashboardController {
     private void updateDashboardKPIs() {
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
              Statement stmt = connect.createStatement()) {
-            ResultSet rs1 = stmt.executeQuery("SELECT COUNT(*) FROM tasks WHERE status = 'In Progress'");
-            if(rs1.next()) lblEnCours.setText(String.valueOf(rs1.getInt(1)));
-            ResultSet rs2 = stmt.executeQuery("SELECT COUNT(*) FROM tasks WHERE status = 'Completed'");
-            if(rs2.next()) lblTerminees.setText(String.valueOf(rs2.getInt(1)));
+
+            // Fix: S'assurer que les labels ne sont pas null
+            if(lblEnCours != null) {
+                ResultSet rs1 = stmt.executeQuery("SELECT COUNT(*) FROM tasks WHERE status = 'In Progress'");
+                if(rs1.next()) lblEnCours.setText(String.valueOf(rs1.getInt(1)));
+            }
+
+            if(lblTerminees != null) {
+                ResultSet rs2 = stmt.executeQuery("SELECT COUNT(*) FROM tasks WHERE status = 'Completed'");
+                if(rs2.next()) lblTerminees.setText(String.valueOf(rs2.getInt(1)));
+            }
+
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void loadPieChartData() {
+        if(pieChartPriority == null) return;
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
              Statement stmt = connect.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT priority, COUNT(*) as count FROM tasks GROUP BY priority");
