@@ -5,13 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="383da4b2-4278-412e-aed8-ab19ab758d55" name="Changes" comment="add notification">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/CategoryClassifier.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/MLPredictionService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/NLPProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/AddTaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/AddTaskController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/add_task.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/add_task.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
