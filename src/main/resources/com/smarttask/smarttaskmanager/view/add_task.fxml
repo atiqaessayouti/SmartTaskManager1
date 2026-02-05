@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="600.0" prefWidth="480.0" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smarttask.smarttaskmanager.controller.AddTaskController">
+<VBox prefHeight="650.0" prefWidth="480.0" spacing="15.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smarttask.smarttaskmanager.controller.AddTaskController">
 
     <Label text="New Task" textFill="#2c3e50">
         <font><Font name="System Bold" size="26.0" /></font>
@@ -68,6 +68,11 @@
             <ComboBox fx:id="cbParentTask" maxWidth="Infinity" promptText="Optional" />
         </VBox>
     </HBox>
+
+    <VBox spacing="8.0">
+        <Label text="Category (AI Suggested):" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
+        <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Auto-detected or Select..." />
+    </VBox>
 
     <HBox alignment="CENTER_RIGHT">
         <Button onAction="#saveTask" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 25; -fx-cursor: hand;" text="Save Task" />

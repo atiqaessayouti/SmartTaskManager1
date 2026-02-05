@@ -3,8 +3,9 @@ package com.smarttask.smarttaskmanager.controller;
 import com.smarttask.smarttaskmanager.DAO.TaskDAO;
 import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.service.AIService;
+import com.smarttask.smarttaskmanager.service.MLPredictionService;
 import com.smarttask.smarttaskmanager.service.NotificationService;
-import com.smarttask.smarttaskmanager.service.PDFExportService; // ✅ Import dyal PDF
+import com.smarttask.smarttaskmanager.service.PDFExportService;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
 
@@ -41,15 +42,33 @@ public class DashboardController {
     @FXML private Button btnMyTasks;
 
     private NotificationService notifService;
+    private MLPredictionService mlModel;
 
     @FXML
     public void initialize() {
         System.out.println("🚀 DÉMARRAGE DU DASHBOARD");
 
-        // UI Check
         if (aiSuggestionLabel != null) {
             aiSuggestionLabel.setText("System Ready");
         }
+
+        // -----------------------------------------------------------
+        // 🧠 MACHINE LEARNING TRAINING (Version SQL Optimisée)
+        // -----------------------------------------------------------
+        try {
+            System.out.println("🤖 Initialisation du modèle IA (Mode Data Mining)...");
+            mlModel = new MLPredictionService();
+
+            // 👇 ICI LE CHANGEMENT : On envoie 'null' car le service lit directement la BDD
+            mlModel.trainModel(null);
+
+            // Test Rapide
+            System.out.println("🔮 Prédiction actuelle pour 'High' : " + mlModel.predictDaysNeeded("High") + " jours");
+
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur lors de l'entraînement IA : " + e.getMessage());
+        }
+        // -----------------------------------------------------------
 
         updateDashboardKPIs();
         loadPieChartData();
@@ -59,28 +78,22 @@ public class DashboardController {
         loadAIInsights();
     }
 
-    // ---------------------------------------------------------
-    // 🟢 PARTIE 1 : NOTIFICATIONS & POPUP
-    // ---------------------------------------------------------
+    // --- LE RESTE DU CODE RESTE IDENTIQUE ---
 
     private void startNotificationService() {
         try {
             notifService = new NotificationService(this);
             notifService.startService();
             System.out.println("✅ Service Notification : DÉMARRÉ");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public void addNotificationToQueue(int taskId, String type, String message, boolean isUrgent) {
-        System.out.println("📞 Reçu notification : " + message);
         Platform.runLater(() -> {
             if (aiSuggestionLabel != null) {
                 aiSuggestionLabel.setText("🔔 " + message);
                 aiSuggestionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: #e74c3c; -fx-padding: 5px;");
             }
-
             if (type.equals("INVITE")) {
                 showInvitationDialog(taskId, message);
             }
@@ -100,11 +113,8 @@ public class DashboardController {
         alert.getButtonTypes().setAll(btnAccept, btnDecline, btnLater);
 
         alert.showAndWait().ifPresent(response -> {
-            if (response == btnAccept) {
-                updateShareStatus(taskId, "ACCEPTED");
-            } else if (response == btnDecline) {
-                updateShareStatus(taskId, "DECLINED");
-            }
+            if (response == btnAccept) updateShareStatus(taskId, "ACCEPTED");
+            else if (response == btnDecline) updateShareStatus(taskId, "DECLINED");
         });
     }
 
@@ -112,11 +122,9 @@ public class DashboardController {
         String sql = "UPDATE tasks SET share_status = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
-
             pst.setString(1, status);
             pst.setInt(2, taskId);
             pst.executeUpdate();
-
             Platform.runLater(() -> {
                 if (aiSuggestionLabel != null) {
                     aiSuggestionLabel.setText("✅ Tâche " + status + " !");
@@ -125,39 +133,22 @@ public class DashboardController {
                 updateDashboardKPIs();
                 checkNotifications();
             });
-            System.out.println("✅ Tâche " + taskId + " : " + status);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
-
-    // ---------------------------------------------------------
-    // 🟢 PARTIE 2 : EXPORT PDF (Zidna hadchi hna)
-    // ---------------------------------------------------------
 
     @FXML
     public void handleExportPDF() {
         try {
-            // 1. Jib les Tâches
             TaskDAO taskDAO = new TaskDAO();
             List<Task> tasks = taskDAO.getAllTasks();
-
             if (tasks.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Attention", "Aucune tâche à exporter !");
                 return;
             }
-
-            // 2. Chemin du fichier (Bureau)
             String path = System.getProperty("user.home") + "/Desktop/MesTaches_SmartManager.pdf";
-
-            // 3. Génération
             PDFExportService pdfService = new PDFExportService();
             pdfService.exportTasksToPDF(tasks, path);
-
-            // 4. Succès
             showAlert(Alert.AlertType.INFORMATION, "Succès", "PDF exporté sur le Bureau !\n" + path);
-
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Erreur", "Problème lors de l'export PDF.");
@@ -170,10 +161,6 @@ public class DashboardController {
         alert.setContentText(content);
         alert.show();
     }
-
-    // ---------------------------------------------------------
-    // 🟢 PARTIE 3 : AI & DATA (Standard)
-    // ---------------------------------------------------------
 
     private void loadAIInsights() {
         new Thread(() -> {
@@ -194,7 +181,6 @@ public class DashboardController {
     private void loadPerformanceTrends() {
         if (productivityChart == null) return;
         productivityChart.getData().clear();
-
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Tasks Completed");
         String sql = "SELECT deadline, COUNT(*) as total FROM tasks WHERE status = 'Completed' GROUP BY deadline ORDER BY deadline LIMIT 7";
@@ -216,37 +202,28 @@ public class DashboardController {
              PreparedStatement prepare = connect.prepareStatement(sql)) {
             prepare.setString(1, currentUser);
             ResultSet rs = prepare.executeQuery();
-            if (rs.next() && rs.getInt(1) > 0) {
-                if (btnMyTasks != null) {
-                    btnMyTasks.setText("My Tasks (" + rs.getInt(1) + ")");
-                    btnMyTasks.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
-                }
+            if (rs.next() && rs.getInt(1) > 0 && btnMyTasks != null) {
+                btnMyTasks.setText("My Tasks (" + rs.getInt(1) + ")");
+                btnMyTasks.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // ---------------------------------------------------------
-    // 🟢 PARTIE 4 : NAVIGATION
-    // ---------------------------------------------------------
-
-    @FXML public void goToDashboard(ActionEvent event) { System.out.println("Déjà sur le Dashboard"); }
+    @FXML public void goToDashboard(ActionEvent event) { }
     @FXML public void goToCalendar(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/calendar_view.fxml", "Calendrier"); }
     @FXML public void goToTasks(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml", "Mes Tâches"); }
     @FXML public void goToProfile(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/profile.fxml", "Profil"); }
-
     @FXML public void handleLogout(ActionEvent event) {
         if (notifService != null) notifService.stopService();
         UserSession.getInstance().cleanUserSession();
         navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml", "Login");
     }
-
     @FXML public void handleNewTask(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/add_task.fxml"));
             Stage s = new Stage(); s.setScene(new Scene(loader.load())); s.show();
         } catch (IOException e) { e.printStackTrace(); }
     }
-
     private void navigate(ActionEvent event, String fxmlPath, String title) {
         try {
             if (notifService != null) notifService.stopService();
@@ -258,34 +235,24 @@ public class DashboardController {
             stage.show();
         } catch (Exception e) { System.out.println("Erreur Navigation: " + fxmlPath); }
     }
-
     private void updateDashboardKPIs() {
-        try (Connection connect = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = connect.createStatement()) {
-
-            // Fix: S'assurer que les labels ne sont pas null
+        try (Connection connect = DatabaseConnection.getInstance().getConnection(); Statement stmt = connect.createStatement()) {
             if(lblEnCours != null) {
                 ResultSet rs1 = stmt.executeQuery("SELECT COUNT(*) FROM tasks WHERE status = 'In Progress'");
                 if(rs1.next()) lblEnCours.setText(String.valueOf(rs1.getInt(1)));
             }
-
             if(lblTerminees != null) {
                 ResultSet rs2 = stmt.executeQuery("SELECT COUNT(*) FROM tasks WHERE status = 'Completed'");
                 if(rs2.next()) lblTerminees.setText(String.valueOf(rs2.getInt(1)));
             }
-
         } catch (Exception e) { e.printStackTrace(); }
     }
-
     private void loadPieChartData() {
         if(pieChartPriority == null) return;
-        try (Connection connect = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = connect.createStatement()) {
+        try (Connection connect = DatabaseConnection.getInstance().getConnection(); Statement stmt = connect.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT priority, COUNT(*) as count FROM tasks GROUP BY priority");
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
-            while (rs.next()) {
-                pieData.add(new PieChart.Data(rs.getString("priority") + " (" + rs.getInt("count") + ")", rs.getInt("count")));
-            }
+            while (rs.next()) pieData.add(new PieChart.Data(rs.getString("priority") + " (" + rs.getInt("count") + ")", rs.getInt("count")));
             pieChartPriority.setData(pieData);
         } catch (Exception e) { e.printStackTrace(); }
     }
