@@ -2,7 +2,7 @@ package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.service.AIService;
-import com.smarttask.smarttaskmanager.service.CategoryClassifier; // ✅ IMPORT NEW
+import com.smarttask.smarttaskmanager.service.CategoryClassifier;
 import com.smarttask.smarttaskmanager.service.MLPredictionService;
 import com.smarttask.smarttaskmanager.service.NLPProcessor;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
@@ -28,8 +28,6 @@ public class AddTaskController {
     @FXML private ComboBox<String> cbRecurrence;
     @FXML private ComboBox<Task> cbParentTask;
     @FXML private Button btnSave;
-
-    // ✅ AJOUT: ComboBox pour la catégorie (Assure-toi de l'avoir ajouté dans SceneBuilder avec fx:id="cbCategory")
     @FXML private ComboBox<String> cbCategory;
 
     private boolean isEditMode = false;
@@ -37,29 +35,30 @@ public class AddTaskController {
 
     @FXML
     public void initialize() {
+
         loadParentTasks();
 
-        // 1. Initialiser Priority
-        if(cbPriority.getItems().isEmpty()) {
+        if (cbPriority.getItems().isEmpty())
             cbPriority.getItems().addAll("High", "Medium", "Low");
-        }
 
-        // 2. ✅ Initialiser Categories (NOUVEAU)
-        if(cbCategory != null && cbCategory.getItems().isEmpty()) {
+        if (cbCategory != null && cbCategory.getItems().isEmpty())
             cbCategory.getItems().addAll("Work", "Education", "Health", "Finance", "Personal", "General");
-        }
 
-        // 3. Déclencheur Machine Learning (SQL)
+        if (cbRecurrence != null && cbRecurrence.getItems().isEmpty())
+            cbRecurrence.getItems().addAll("NONE", "Daily", "Weekly", "Monthly", "Yearly");
+
         setupAIPrediction();
 
-        // 4. Déclencheur NLP & Category (Langage Naturel)
-        setupNLPListener();
+        taDescription.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && !isEditMode) {
+                fillTaskInfoFromDescription();
+            }
+        });
     }
 
-    // 🧠 NLP + CATEGORY: Analyse complète
     private void setupNLPListener() {
         tfTitle.focusedProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal) { // Focus Lost (Quand on quitte le champ)
+            if (!newVal && !isEditMode) {
                 applySmartAnalysis();
             }
         });
@@ -69,45 +68,30 @@ public class AddTaskController {
         String text = tfTitle.getText();
         if (text == null || text.isEmpty()) return;
 
-        // A. Détecter la date
         LocalDate detectedDate = NLPProcessor.extractDate(text);
-        if (detectedDate != null) {
+        if (detectedDate != null && dpDeadline.getValue() == null)
             dpDeadline.setValue(detectedDate);
-            System.out.println("🤖 NLP: Date -> " + detectedDate);
-        }
 
-        // B. Détecter la priorité
         String detectedPriority = NLPProcessor.extractPriority(text);
-        if (detectedPriority != null) {
+        if (detectedPriority != null && cbPriority.getValue() == null)
             cbPriority.setValue(detectedPriority);
-            System.out.println("🤖 NLP: Priority -> " + detectedPriority);
-        }
 
-        // C. ✅ Détecter la catégorie (NOUVEAU)
-        if (cbCategory != null) {
+        if (cbCategory != null && cbCategory.getValue() == null) {
             String suggestedCategory = CategoryClassifier.suggestCategory(text);
             cbCategory.setValue(suggestedCategory);
-            System.out.println("🤖 AI Category -> " + suggestedCategory);
         }
     }
 
-    // 🧠 ML: Prediction Automatique basée sur l'historique SQL
     private void setupAIPrediction() {
         cbPriority.setOnAction(event -> {
             String selectedPriority = cbPriority.getValue();
 
-            if (selectedPriority != null && !isEditMode) {
+            if (selectedPriority != null && !isEditMode && dpDeadline.getValue() == null) {
                 try {
                     MLPredictionService mlModel = new MLPredictionService();
-                    mlModel.trainModel(null); // Mode SQL direct
+                    mlModel.trainModel(null);
                     int daysNeeded = mlModel.predictDaysNeeded(selectedPriority);
-
-                    // Si le NLP n'a pas mis de date, on utilise le ML
-                    if (dpDeadline.getValue() == null) {
-                        dpDeadline.setValue(LocalDate.now().plusDays(daysNeeded));
-                        System.out.println("🤖 ML (SQL) a suggéré : + " + daysNeeded + " jours");
-                    }
-
+                    dpDeadline.setValue(LocalDate.now().plusDays(daysNeeded));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -115,30 +99,24 @@ public class AddTaskController {
         });
     }
 
-    // 👇 SAUVEGARDE EN BASE DE DONNÉES (MISE À JOUR)
     @FXML
     public void saveTask(ActionEvent event) {
+
         String title = tfTitle.getText();
         String description = taDescription.getText();
         String priority = cbPriority.getValue();
         LocalDate deadline = dpDeadline.getValue();
         String recurrence = cbRecurrence.getValue() != null ? cbRecurrence.getValue() : "NONE";
-
-        // ✅ Récupérer la catégorie
         String category = (cbCategory != null && cbCategory.getValue() != null) ? cbCategory.getValue() : "General";
 
-        if (title.isEmpty()) {
+        if (title == null || title.trim().isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Error", "Title is required!");
             return;
         }
 
-        String sql;
-        // ⚠️ NOTE: J'ai ajouté 'category' dans la requête SQL. Assure-toi que la colonne existe dans MySQL !
-        if (isEditMode) {
-            sql = "UPDATE tasks SET title=?, description=?, priority=?, deadline=?, recurrence_type=?, category=? WHERE id=?";
-        } else {
-            sql = "INSERT INTO tasks (title, description, priority, status, deadline, recurrence_type, category, user_email) VALUES (?, ?, ?, 'In Progress', ?, ?, ?, ?)";
-        }
+        String sql = isEditMode
+                ? "UPDATE tasks SET title=?, description=?, priority=?, deadline=?, recurrence_type=?, category=? WHERE id=?"
+                : "INSERT INTO tasks (title, description, priority, status, deadline, recurrence_type, category, user_email) VALUES (?, ?, ?, 'In Progress', ?, ?, ?, ?)";
 
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
              PreparedStatement prepare = connect.prepareStatement(sql)) {
@@ -147,22 +125,22 @@ public class AddTaskController {
             prepare.setString(2, description);
             prepare.setString(3, priority != null ? priority : "Medium");
 
-            if (deadline != null) prepare.setDate(4, java.sql.Date.valueOf(deadline));
-            else prepare.setNull(4, java.sql.Types.DATE);
+            if (deadline != null)
+                prepare.setDate(4, java.sql.Date.valueOf(deadline));
+            else
+                prepare.setNull(4, java.sql.Types.DATE);
 
             prepare.setString(5, recurrence);
-
-            // ✅ Ajout du paramètre Category
             prepare.setString(6, category);
 
-            if (isEditMode) {
+            if (isEditMode)
                 prepare.setInt(7, taskIdToEdit);
-            } else {
+            else
                 prepare.setString(7, UserSession.getInstance().getEmail());
-            }
 
             if (prepare.executeUpdate() > 0) {
-                showAlert(Alert.AlertType.INFORMATION, "Success", isEditMode ? "Task updated!" : "Task added!");
+                showAlert(Alert.AlertType.INFORMATION, "Success",
+                        isEditMode ? "Task updated!" : "Task added!");
                 ((Stage) tfTitle.getScene().getWindow()).close();
             }
 
@@ -172,36 +150,41 @@ public class AddTaskController {
         }
     }
 
-    // 👇 RESTE DU CODE STANDARD
     public void setTaskData(Task task) {
         this.isEditMode = true;
         this.taskIdToEdit = task.getId();
-
         tfTitle.setText(task.getTitle());
         taDescription.setText(task.getDescription());
         cbPriority.setValue(task.getPriority());
         dpDeadline.setValue(task.getDeadline());
 
-        // ✅ Remplir la catégorie en mode Edit
-        if (cbCategory != null && task.getCategory() != null) {
+        if (cbCategory != null && task.getCategory() != null)
             cbCategory.setValue(task.getCategory());
-        }
 
-        if(btnSave != null) btnSave.setText("Mettre à jour");
+        if (btnSave != null)
+            btnSave.setText("Mettre à jour");
     }
 
     private void loadParentTasks() {
         ObservableList<Task> tasks = FXCollections.observableArrayList();
+
         String sql = "SELECT id, title FROM tasks WHERE user_email = ?";
+
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
              PreparedStatement prepare = connect.prepareStatement(sql)) {
+
             prepare.setString(1, UserSession.getInstance().getEmail());
             ResultSet rs = prepare.executeQuery();
-            while (rs.next()) {
-                tasks.add(new Task(rs.getInt("id"), rs.getString("title"), null, null, null, null, null, null));
-            }
+
+            while (rs.next())
+                tasks.add(new Task(rs.getInt("id"), rs.getString("title"),
+                        null, null, null, null, null, null));
+
             cbParentTask.setItems(tasks);
-        } catch (Exception e) { e.printStackTrace(); }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -214,5 +197,66 @@ public class AddTaskController {
         alert.setTitle(title);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    // 🔥 AI brain (Corrected Logic for Recurrence + Date)
+    private void fillTaskInfoFromDescription() {
+
+        String descText = taDescription.getText();
+        if (descText == null || descText.trim().isEmpty()) return;
+
+        // متغير باش نعرفو واش لقينا تكرار ولا لا
+        boolean isRecurringFound = false;
+
+        // 1. Recurrence (التكرار)
+        if (cbRecurrence != null) {
+            String detectedRecurrence = AIService.suggestRecurrence(descText);
+
+            // ✅ التصحيح: مابقاش كيهمنا واش كانت NONE ولا خاوية، إلا لقا Daily يحطها
+            if (!"NONE".equals(detectedRecurrence)) {
+                cbRecurrence.setValue(detectedRecurrence);
+                isRecurringFound = true; // ✅ قيدنا بلي راها كتعاود
+            }
+        }
+
+        // 2. Priority (الأولوية)
+        if (cbPriority != null) {
+            String detectedPriority = AIService.suggestPriority(descText);
+            // ✅ التصحيح: نفس الشيء، إلا لقا High يحطها
+            if (!"Medium".equals(detectedPriority)) {
+                cbPriority.setValue(detectedPriority);
+            }
+        }
+
+        // 3. Category (التصنيف)
+        if (cbCategory != null) {
+            String detectedCategory = AIService.suggestCategory(descText);
+            if (!"General".equals(detectedCategory)) {
+                cbCategory.setValue(detectedCategory);
+            }
+        }
+
+        // 4. Deadline (التاريخ)
+
+        // 🚨 التصحيح: حيدنا الشرط if (dpDeadline.getValue() == null)
+        // السبب: حيت فاش كتبدّل Priority، الموديل ML كيعمّر التاريخ، وهادشي كان كيبلوكي الـ NLP
+        // دابا: الـ NLP (النص) عندو الكلمة الأخيرة ديما.
+
+        LocalDate detectedDate = AIService.parseDate(descText);
+
+        if (detectedDate != null) {
+            // إلا لقا تاريخ صريح (demain, next week...) يحطو
+            dpDeadline.setValue(detectedDate);
+        }
+        else if (isRecurringFound) {
+            // ✅ إلا كانت task كتعاود (every day)، خاصها تبدا اليوم بزز
+            dpDeadline.setValue(LocalDate.now());
+        }
+
+        // 5. Title (العنوان)
+        if (tfTitle.getText() == null || tfTitle.getText().trim().isEmpty()) {
+            String cleanTitle = AIService.extractCleanTitle(descText);
+            tfTitle.setText(cleanTitle);
+        }
     }
 }
