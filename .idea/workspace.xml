@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="383da4b2-4278-412e-aed8-ab19ab758d55" name="Changes" comment="add notification">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/RecurrenceService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/DAO/TaskDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/DAO/TaskDAO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/AddTaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/AddTaskController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/CalendarController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/CalendarController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/TasksController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/TasksController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/model/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/model/Task.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/AIService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/AIService.java" afterDir="false" />
-    </list>
+    <list default="true" id="383da4b2-4278-412e-aed8-ab19ab758d55" name="Changes" comment="add notification" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
