@@ -1,14 +1,15 @@
 package com.smarttask.smarttaskmanager.controller;
 
 import com.smarttask.smarttaskmanager.model.Task;
+import com.smarttask.smarttaskmanager.service.RecurrenceService;
 import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.Node;
+import javafx.scene.Scene; // ✅ ها أنا ضفت ليك Scene باش يحيد الخطأ
+import javafx.scene.Node;  // ✅ ها أنا ضفت ليك Node باش يحيد الخطأ
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -26,8 +27,6 @@ public class TasksController {
 
     @FXML private FlowPane tasksContainer;
     @FXML private TextField searchField;
-    @FXML private BorderPane tasksRoot;
-
     private List<Task> allTasks = new ArrayList<>();
 
     @FXML
@@ -41,9 +40,12 @@ public class TasksController {
         String sql = "SELECT * FROM tasks WHERE user_email = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
+
             pst.setString(1, UserSession.getInstance().getEmail());
             ResultSet rs = pst.executeQuery();
+
             while (rs.next()) {
+                // ✅ هنا فين كان عندك الأحمر: خاص يكونو 9 د الحوايج وبنفس الترتيب
                 allTasks.add(new Task(
                         rs.getInt("id"),
                         rs.getString("title"),
@@ -52,7 +54,8 @@ public class TasksController {
                         rs.getString("status"),
                         (rs.getDate("deadline") != null) ? rs.getDate("deadline").toLocalDate() : null,
                         rs.getString("category"),
-                        rs.getString("shared_with")
+                        rs.getString("shared_with"),
+                        rs.getString("recurrence_type") // 9. Recurrence
                 ));
             }
             displayTasks("");
@@ -85,9 +88,10 @@ public class TasksController {
 
         HBox prioBox = new HBox(6);
         Circle dot = new Circle(5);
-        if (task.getPriority().equalsIgnoreCase("High")) dot.setFill(Color.web("#c0392b"));
-        else if (task.getPriority().equalsIgnoreCase("Medium")) dot.setFill(Color.web("#d35400"));
+        if ("High".equalsIgnoreCase(task.getPriority())) dot.setFill(Color.web("#c0392b"));
+        else if ("Medium".equalsIgnoreCase(task.getPriority())) dot.setFill(Color.web("#d35400"));
         else dot.setFill(Color.web("#1e8449"));
+
         Label pLbl = new Label(task.getPriority());
         prioBox.getChildren().addAll(dot, pLbl);
 
@@ -100,17 +104,14 @@ public class TasksController {
         actions.setAlignment(Pos.BOTTOM_RIGHT);
         VBox.setVgrow(actions, Priority.ALWAYS);
 
-        // ✅ Bouton Edit (Modifier)
         Button bEdit = new Button("Edit");
         bEdit.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-background-radius: 20; -fx-cursor: hand;");
         bEdit.setOnAction(e -> handleEditTask(task));
 
-        // ✅ Bouton Done (Terminer)
         Button bDone = new Button("Done");
         bDone.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 20; -fx-cursor: hand;");
         bDone.setOnAction(e -> updateStatus(task.getId(), "Completed"));
 
-        // ✅ Bouton Delete (Supprimer)
         Button bDel = new Button("Delete");
         bDel.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 20; -fx-cursor: hand;");
         bDel.setOnAction(e -> deleteTask(task.getId()));
@@ -124,10 +125,8 @@ public class TasksController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/add_task.fxml"));
             Parent root = loader.load();
-
             AddTaskController controller = loader.getController();
             controller.setTaskData(task);
-
             Stage stage = new Stage();
             stage.setTitle("✏️ Modifier Tâche");
             stage.initModality(Modality.APPLICATION_MODAL);
@@ -151,7 +150,6 @@ public class TasksController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // ✅ MODIFIÉ : Vérifie la récurrence après avoir mis "Completed"
     private void updateStatus(int id, String status) {
         String sql = "UPDATE tasks SET status = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -160,59 +158,13 @@ public class TasksController {
             pst.setInt(2, id);
             pst.executeUpdate();
 
-            // 👇 LA MAGIE : Si c'est terminé, on vérifie si on doit la recréer pour demain
+            // Check Recurrence
             if ("Completed".equals(status)) {
-                handleRecurrence(id);
+                // Fetch full task details for recurrence check
+                Task t = allTasks.stream().filter(x -> x.getId() == id).findFirst().orElse(null);
+                if(t != null) RecurrenceService.checkAndCreateNextTask(t);
             }
-
             loadTasks();
-        } catch (SQLException e) { e.printStackTrace(); }
-    }
-
-    // ✅ NOUVEAU : Logique de Récurrence Automatique
-    private void handleRecurrence(int taskId) {
-        String selectSql = "SELECT * FROM tasks WHERE id = ?";
-        String insertSql = "INSERT INTO tasks (title, description, priority, status, deadline, category, user_email, recurrence_type) VALUES (?, ?, ?, 'In Progress', ?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pstSelect = conn.prepareStatement(selectSql)) {
-
-            pstSelect.setInt(1, taskId);
-            ResultSet rs = pstSelect.executeQuery();
-
-            if (rs.next()) {
-                String recurrence = rs.getString("recurrence_type");
-                java.sql.Date sqlDate = rs.getDate("deadline");
-
-                // Si pas de récurrence ou pas de date, on arrête
-                if (recurrence == null || recurrence.equals("NONE") || sqlDate == null) {
-                    return;
-                }
-
-                java.time.LocalDate oldDeadline = sqlDate.toLocalDate();
-                java.time.LocalDate newDeadline = oldDeadline;
-
-                // Calcul de la nouvelle date
-                switch (recurrence) {
-                    case "DAILY":   newDeadline = oldDeadline.plusDays(1); break;
-                    case "WEEKLY":  newDeadline = oldDeadline.plusWeeks(1); break;
-                    case "MONTHLY": newDeadline = oldDeadline.plusMonths(1); break;
-                }
-
-                // Insertion de la nouvelle tâche (Copie)
-                try (PreparedStatement pstInsert = conn.prepareStatement(insertSql)) {
-                    pstInsert.setString(1, rs.getString("title"));
-                    pstInsert.setString(2, rs.getString("description"));
-                    pstInsert.setString(3, rs.getString("priority"));
-                    pstInsert.setDate(4, java.sql.Date.valueOf(newDeadline));
-                    pstInsert.setString(5, rs.getString("category"));
-                    pstInsert.setString(6, rs.getString("user_email"));
-                    pstInsert.setString(7, recurrence);
-
-                    pstInsert.executeUpdate();
-                    System.out.println("✅ Tâche récurrente créée pour le : " + newDeadline);
-                }
-            }
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
