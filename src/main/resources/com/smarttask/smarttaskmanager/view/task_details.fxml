@@ -6,53 +6,72 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="15" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="20" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.smarttask.smarttaskmanager.controller.TaskDetailsController"
-      style="-fx-padding: 20; -fx-background-color: white; -fx-pref-width: 450px;">
+      style="-fx-padding: 25; -fx-background-color: white; -fx-pref-width: 480px; -fx-background-radius: 15; -fx-border-color: #f1f2f6; -fx-border-radius: 15; -fx-border-width: 1;">
 
-    <Label text="Détails de la Tâche" textFill="#2c3e50">
-        <font><Font name="System Bold" size="18.0"/></font>
+    <effect>
+        <DropShadow color="rgba(0,0,0,0.1)" radius="15" offsetY="5"/>
+    </effect>
+
+    <Label text="Détails de la Tâche" textFill="#2d3436">
+        <font><Font name="Segoe UI Bold" size="22.0"/></font>
     </Label>
 
-    <VBox spacing="5">
-        <Label text="Titre:" style="-fx-font-weight: bold;"/>
-        <TextField fx:id="titleField" editable="false" style="-fx-background-color: #ecf0f1;"/>
+    <VBox spacing="15">
+        <VBox spacing="5">
+            <Label text="Titre" textFill="#b2bec3" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <TextField fx:id="titleField" editable="false"
+                       style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10; -fx-text-fill: #2d3436; -fx-font-weight: bold;"/>
+        </VBox>
+
+        <VBox spacing="5">
+            <Label text="Description" textFill="#b2bec3" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <TextArea fx:id="descriptionArea" editable="false" prefRowCount="3" wrapText="true"
+                      style="-fx-control-inner-background: #f8f9fa; -fx-background-color: transparent; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 5; -fx-text-fill: #636e72;"/>
+        </VBox>
     </VBox>
 
-    <VBox spacing="5">
-        <Label text="Description:" style="-fx-font-weight: bold;"/>
-        <TextArea fx:id="descriptionArea" editable="false" prefRowCount="3" wrapText="true" style="-fx-control-inner-background: #ecf0f1;"/>
-    </VBox>
+    <VBox spacing="10" style="-fx-background-color: linear-gradient(to right, #f3e5f5, #e1bee7); -fx-padding: 15; -fx-background-radius: 12;">
+        <Label text="Partager cette tâche" style="-fx-font-weight: bold; -fx-text-fill: #8e24aa; -fx-font-size: 13px;"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <TextField fx:id="shareField" promptText="ami@email.com" HBox.hgrow="ALWAYS"
+                       style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 8 12; -fx-border-color: transparent;"/>
 
-    <VBox spacing="5" style="-fx-background-color: #fcf3cf; -fx-padding: 10; -fx-background-radius: 5;">
-        <Label text="Partager cette tâche (Email):" style="-fx-font-weight: bold; -fx-text-fill: #d35400;"/>
-        <HBox spacing="10">
-            <TextField fx:id="shareField" promptText="ami@email.com" HBox.hgrow="ALWAYS"/>
-            <Button text="Partager" onAction="#handleShare" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <Button text="Envoyer" onAction="#handleShare"
+                    style="-fx-background-color: #ab47bc; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 20; -fx-font-weight: bold; -fx-padding: 8 15;">
+                <effect><DropShadow color="rgba(171, 71, 188, 0.3)" radius="5" offsetY="2"/></effect>
+            </Button>
         </HBox>
     </VBox>
 
-    <VBox spacing="5" VBox.vgrow="ALWAYS">
-        <Label text="Commentaires &amp; Fichiers:" style="-fx-font-weight: bold; -fx-padding: 5 0 0 0;"/>
+    <VBox spacing="10" VBox.vgrow="ALWAYS">
+        <Label text="Commentaires &amp; Fichiers" textFill="#2d3436" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
 
-        <ListView fx:id="commentsList" VBox.vgrow="ALWAYS" prefHeight="200" style="-fx-background-color: #ecf0f1;"/>
+        <ListView fx:id="commentsList" VBox.vgrow="ALWAYS" prefHeight="250"
+                  style="-fx-background-color: white; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 5;"/>
 
-        <VBox spacing="2">
-            <Label fx:id="lblSelectedFile" text="" textFill="#27ae60" style="-fx-font-size: 11px; -fx-font-style: italic;"/>
+        <VBox spacing="5">
+            <Label fx:id="lblSelectedFile" text="" textFill="#27ae60" style="-fx-font-size: 11px; -fx-font-style: italic; -fx-padding: 0 0 0 5;"/>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button text="📎" onAction="#handleAttachFile" style="-fx-background-color: #bdc3c7; -fx-cursor: hand;">
-                    <tooltip>
-                        <Tooltip text="Joindre un fichier"/>
-                    </tooltip>
+                <Button text="📎" onAction="#handleAttachFile"
+                        style="-fx-background-color: #ecf0f1; -fx-text-fill: #2d3436; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 35; -fx-min-height: 35; -fx-font-size: 14px;">
+                    <tooltip><Tooltip text="Joindre un fichier"/></tooltip>
                 </Button>
 
-                <TextField fx:id="commentInput" promptText="Écrire un message..." HBox.hgrow="ALWAYS"/>
-                <Button text="Envoyer" onAction="#handleAddComment" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <TextField fx:id="commentInput" promptText="Écrire un message..." HBox.hgrow="ALWAYS"
+                           style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 10;"/>
+
+                <Button text="Post" onAction="#handleAddComment"
+                        style="-fx-background-color: linear-gradient(to right, #00dbde, #fc00ff); -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20; -fx-padding: 8 20;">
+                    <effect><DropShadow color="rgba(0,0,0,0.1)" radius="5" offsetY="2"/></effect>
+                </Button>
             </HBox>
         </VBox>
     </VBox>

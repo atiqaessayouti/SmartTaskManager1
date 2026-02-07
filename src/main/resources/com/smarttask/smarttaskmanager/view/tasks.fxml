@@ -1,32 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="tasksRoot" prefHeight="700.0" prefWidth="1050.0"
-            style="-fx-background-color: #f4f7f6;"
+            style="-fx-background-color: #f8f9fa;"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.smarttask.smarttaskmanager.controller.TasksController">
+
     <top>
-        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 20; -fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);">
-            <children>
-                <Button onAction="#goToDashboard" text="🏠 Dashboard"
-                        style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 15;"/>
-                <Label text="📋 My Task Cards" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                <Region HBox.hgrow="ALWAYS" />
-                <TextField fx:id="searchField" promptText="🔍 Search tasks..." prefWidth="250.0"
-                           style="-fx-background-radius: 20; -fx-padding: 8 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;"/>
-                <Button onAction="#handleAddTask" text="+ New Task"
-                        style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 20;"/>
-            </children>
+        <HBox alignment="CENTER_LEFT" spacing="20"
+              style="-fx-padding: 20 40; -fx-background-color: white; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 2 0;">
+
+            <effect>
+                <DropShadow color="rgba(0,0,0,0.05)" radius="15" offsetY="5"/>
+            </effect>
+
+            <Button onAction="#goToDashboard" text="← Dashboard"
+                    style="-fx-background-color: white; -fx-text-fill: #4A00E0; -fx-font-weight: bold; -fx-background-radius: 30; -fx-border-color: #4A00E0; -fx-border-radius: 30; -fx-cursor: hand; -fx-padding: 8 20;">
+                <effect><DropShadow color="rgba(74, 0, 224, 0.1)" radius="5"/></effect>
+            </Button>
+
+            <Region prefWidth="20" />
+
+            <Label text="My Task Cards" textFill="#2d3436">
+                <font><Font name="Segoe UI Bold" size="28.0"/></font>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <TextField fx:id="searchField" promptText="🔍 Search tasks..." prefWidth="320.0"
+                       style="-fx-background-color: #f1f2f6; -fx-background-radius: 30; -fx-padding: 12 20; -fx-border-color: transparent; -fx-text-fill: #2d3436; -fx-font-size: 14px;">
+            </TextField>
+
+            <Button onAction="#handleAddTask" text="+ New Task"
+                    style="-fx-background-color: linear-gradient(to right, #4A00E0, #8E2DE2); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 30; -fx-cursor: hand; -fx-padding: 10 25; -fx-font-size: 14px;">
+                <effect><DropShadow color="rgba(74, 0, 224, 0.4)" radius="10" offsetY="3"/></effect>
+            </Button>
         </HBox>
     </top>
+
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 10;">
             <content>
-                <FlowPane fx:id="tasksContainer" hgap="25" vgap="25" style="-fx-padding: 30;">
+                <FlowPane fx:id="tasksContainer" hgap="30" vgap="30" alignment="TOP_LEFT"
+                          style="-fx-background-color: transparent; -fx-padding: 40;">
                 </FlowPane>
             </content>
         </ScrollPane>
     </center>
+
 </BorderPane>

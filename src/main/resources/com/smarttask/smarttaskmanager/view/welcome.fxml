@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<StackPane prefHeight="650.0" prefWidth="450.0"
+           style="-fx-background-color: linear-gradient(to bottom, #fbc2eb 0%, #a6c1ee 100%);"
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.smarttask.smarttaskmanager.controller.WelcomeController">
+
+    <VBox alignment="CENTER" spacing="40.0" maxWidth="350">
+
+        <VBox alignment="CENTER" spacing="10">
+            <Label text="Welcome =)" textFill="WHITE">
+                <font>
+                    <Font name="Segoe UI Bold" size="36.0"/>
+                </font>
+                <effect>
+                    <DropShadow radius="10" color="rgba(0,0,0,0.1)"/>
+                </effect>
+            </Label>
+
+            <VBox alignment="CENTER" spacing="5">
+                <Label text="Hi there!" textFill="WHITE" style="-fx-font-size: 16px; -fx-opacity: 0.9;" />
+
+                <Label text="Organize your day and achieve your goals effortlessly."
+                       textFill="WHITE" style="-fx-font-size: 13px; -fx-opacity: 0.9;" wrapText="true" textAlignment="CENTER"/>
+
+                <Label text="The choice is yours: Log in or create an account." textFill="WHITE" style="-fx-font-size: 13px; -fx-opacity: 0.8;" />
+            </VBox>
+        </VBox>
+
+        <StackPane>
+            <effect>
+                <DropShadow radius="20.0" offsetY="10.0" color="rgba(0,0,0,0.2)"/>
+            </effect>
+            <ImageView fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="@../images/logo.png"/>
+                </image>
+            </ImageView>
+        </StackPane>
+
+        <VBox alignment="CENTER" spacing="20.0" maxWidth="300">
+
+            <Button onAction="#handleCreateAccount" maxWidth="Infinity" text="Create Account"
+                    style="-fx-background-color: white; -fx-text-fill: #2d3436; -fx-font-weight: bold; -fx-background-radius: 30; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;">
+                <effect>
+                    <DropShadow color="rgba(0,0,0,0.15)" radius="15" offsetY="5" />
+                </effect>
+            </Button>
+
+            <Button onAction="#handleLogin" maxWidth="Infinity" text="Log In"
+                    style="-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 30; -fx-background-radius: 30; -fx-padding: 13; -fx-cursor: hand; -fx-font-size: 14px;">
+                <effect>
+                    <DropShadow color="rgba(0,0,0,0.05)" radius="10" offsetY="3" />
+                </effect>
+            </Button>
+
+        </VBox>
+    </VBox>
+</StackPane>

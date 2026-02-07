@@ -5,8 +5,10 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
@@ -15,110 +17,146 @@
 <?import javafx.scene.text.Font?>
 
 <BorderPane prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.smarttask.smarttaskmanager.controller.ProfileController">
+            fx:controller="com.smarttask.smarttaskmanager.controller.ProfileController"
+            style="-fx-background-color: #f8f9fa;">
 
     <left>
-        <VBox spacing="15.0" style="-fx-background-color: #2c3e50; -fx-padding: 20;">
-            <Label text="SmartManager" textFill="WHITE">
-                <font><Font name="System Bold" size="20.0"/></font>
-            </Label>
+        <VBox spacing="15.0" prefWidth="240.0"
+              style="-fx-background-color: linear-gradient(to bottom right, #4A00E0, #8E2DE2); -fx-background-radius: 0 30 30 0; -fx-padding: 30;">
+            <effect>
+                <DropShadow color="rgba(0,0,0,0.25)" radius="20" width="30" />
+            </effect>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="SmartManager" textFill="WHITE">
+                    <font><Font name="Segoe UI Bold" size="20.0"/></font>
+                    <effect><DropShadow color="rgba(0,0,0,0.3)" radius="5" offsetY="2"/></effect>
+                </Label>
+            </HBox>
+
+            <Separator opacity="0.4" style="-fx-background-color: white;" />
+
             <VBox spacing="10.0" VBox.vgrow="ALWAYS">
-                <Button text="Dashboard" onAction="#goToDashboard" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
-                <Button text="My Tasks" onAction="#goToTasks" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
-                <Button text="Profile" maxWidth="Infinity" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-alignment: CENTER_LEFT;"/>
+                <Button maxWidth="Infinity" onAction="#goToDashboard" text="Dashboard"
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 10 15; -fx-cursor: hand;"/>
+                <Button maxWidth="Infinity" onAction="#goToTasks" text="My Tasks"
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 10 15; -fx-cursor: hand;"/>
+                <Button maxWidth="Infinity" onAction="#goToCalendar" text="Calendar"
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 10 15; -fx-cursor: hand;"/>
+
+                <Button maxWidth="Infinity" style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-alignment: CENTER_LEFT; -fx-padding: 10 15; -fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.3); -fx-border-radius: 12;" text="Profile" />
             </VBox>
-            <Button text="Logout" onAction="#handleLogout" maxWidth="Infinity" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"/>
+
+            <Button maxWidth="Infinity" onAction="#handleLogout" style="-fx-background-color: rgba(255, 69, 58, 0.9); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-padding: 10; -fx-cursor: hand;" text="Log Out" />
         </VBox>
     </left>
 
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background: #f8f9fa; -fx-border-color: transparent;">
+        <ScrollPane fitToWidth="true" style="-fx-background: #f8f9fa; -fx-border-color: transparent; -fx-padding: 20;">
             <content>
-                <VBox spacing="30.0" style="-fx-background-color: #f8f9fa; -fx-padding: 40;" alignment="TOP_CENTER">
+                <VBox spacing="30.0" alignment="TOP_CENTER" maxWidth="800">
 
-                    <VBox alignment="CENTER" spacing="10.0">
+                    <VBox alignment="CENTER" spacing="15.0">
                         <StackPane>
-                            <Circle fx:id="profileImage" radius="60.0" stroke="#bdc3c7" strokeWidth="2.0" fill="DODGERBLUE"/>
+                            <Circle fx:id="profileImage" radius="65.0" stroke="#4A00E0" strokeWidth="3.0" fill="WHITE">
+                                <effect><DropShadow color="rgba(0,0,0,0.15)" radius="10" /></effect>
+                            </Circle>
                             <Button text="📷" onAction="#handleImportImage"
-                                    style="-fx-background-color: #2c3e50; -fx-text-fill: white; -fx-background-radius: 50; -fx-cursor: hand;"
-                                    StackPane.alignment="BOTTOM_RIGHT" />
+                                    style="-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-background-radius: 50; -fx-cursor: hand; -fx-min-width: 35; -fx-min-height: 35;"
+                                    StackPane.alignment="BOTTOM_RIGHT">
+                                <StackPane.margin><Insets bottom="5" right="5"/></StackPane.margin>
+                            </Button>
                         </StackPane>
 
-                        <Label fx:id="lblHeaderName" text="Loading..." textFill="#2c3e50">
-                            <font><Font name="System Bold" size="24.0"/></font>
-                        </Label>
-                        <Label fx:id="lblHeaderRole" text="..." textFill="#7f8c8d">
-                            <font><Font size="14.0"/></font>
-                        </Label>
+                        <VBox alignment="CENTER" spacing="5">
+                            <Label fx:id="lblHeaderName" text="Loading..." textFill="#2d3436">
+                                <font><Font name="Segoe UI Bold" size="26.0"/></font>
+                            </Label>
+                            <Label fx:id="lblHeaderRole" text="Student / Developer" textFill="#636e72">
+                                <font><Font size="14.0"/></font>
+                            </Label>
+                        </VBox>
                     </VBox>
 
-                    <HBox spacing="15.0" alignment="CENTER">
-                        <VBox alignment="CENTER_LEFT" spacing="5" prefWidth="180" style="-fx-background-color: linear-gradient(to right, #27ae60, #2ecc71); -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);">
-                            <Label text="Tasks Done" textFill="WHITE" opacity="0.9"/>
-                            <Label fx:id="lblStatDone" text="0" textFill="WHITE"><font><Font name="System Bold" size="24.0"/></font></Label>
+                    <HBox spacing="20.0" alignment="CENTER">
+                        <VBox alignment="CENTER_LEFT" spacing="5" prefWidth="200"
+                              style="-fx-background-color: linear-gradient(to right, #a18cd1, #fbc2eb); -fx-background-radius: 15; -fx-padding: 20;">
+                            <effect><DropShadow color="rgba(0,0,0,0.15)" radius="10" offsetY="5"/></effect>
+                            <Label text="Tasks Done" textFill="WHITE" style="-fx-font-weight: bold; opacity: 0.9;"/>
+                            <Label fx:id="lblStatDone" text="0" textFill="WHITE"><font><Font name="Segoe UI Bold" size="28.0"/></font></Label>
                         </VBox>
-                        <VBox alignment="CENTER_LEFT" spacing="5" prefWidth="180" style="-fx-background-color: linear-gradient(to right, #f39c12, #f1c40f); -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);">
-                            <Label text="Pending" textFill="WHITE" opacity="0.9"/>
-                            <Label fx:id="lblStatPending" text="0" textFill="WHITE"><font><Font name="System Bold" size="24.0"/></font></Label>
+
+                        <VBox alignment="CENTER_LEFT" spacing="5" prefWidth="200"
+                              style="-fx-background-color: linear-gradient(to right, #84fab0, #8fd3f4); -fx-background-radius: 15; -fx-padding: 20;">
+                            <effect><DropShadow color="rgba(0,0,0,0.15)" radius="10" offsetY="5"/></effect>
+                            <Label text="Pending" textFill="WHITE" style="-fx-font-weight: bold; opacity: 0.9;"/>
+                            <Label fx:id="lblStatPending" text="0" textFill="WHITE"><font><Font name="Segoe UI Bold" size="28.0"/></font></Label>
                         </VBox>
-                        <VBox alignment="CENTER_LEFT" spacing="5" prefWidth="180" style="-fx-background-color: linear-gradient(to right, #2980b9, #3498db); -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);">
-                            <Label text="Productivity" textFill="WHITE" opacity="0.9"/>
-                            <Label fx:id="lblStatScore" text="0%" textFill="WHITE"><font><Font name="System Bold" size="24.0"/></font></Label>
+
+                        <VBox alignment="CENTER_LEFT" spacing="5" prefWidth="200"
+                              style="-fx-background-color: linear-gradient(to right, #ff9a9e, #fecfef); -fx-background-radius: 15; -fx-padding: 20;">
+                            <effect><DropShadow color="rgba(0,0,0,0.15)" radius="10" offsetY="5"/></effect>
+                            <Label text="Productivity" textFill="WHITE" style="-fx-font-weight: bold; opacity: 0.9;"/>
+                            <Label fx:id="lblStatScore" text="0%" textFill="WHITE"><font><Font name="Segoe UI Bold" size="28.0"/></font></Label>
                         </VBox>
                     </HBox>
 
-                    <HBox spacing="10" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 30; -fx-padding: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-max-width: 400;">
-                        <Button fx:id="btnTabInfo" text="Personal Details" onAction="#switchForm" prefWidth="180"
-                                style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                    <HBox spacing="10" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 30; -fx-padding: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-max-width: 450;">
+                        <Button fx:id="btnTabInfo" text="Personal Details" onAction="#switchForm" prefWidth="200"
+                                style="-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10;"/>
 
-                        <Button fx:id="btnTabSecurity" text="Security" onAction="#switchForm" prefWidth="180"
-                                style="-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                        <Button fx:id="btnTabSecurity" text="Security" onAction="#switchForm" prefWidth="200"
+                                style="-fx-background-color: transparent; -fx-text-fill: #636e72; -fx-background-radius: 20; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10;"/>
                     </HBox>
 
-                    <StackPane style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 30; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-max-width: 700;">
+                    <StackPane style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 40; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5); -fx-max-width: 700;">
 
-                        <VBox fx:id="infoBox" spacing="20.0" alignment="CENTER_LEFT">
-                            <Label text="Edit Profile Information" textFill="#2c3e50"><font><Font name="System Bold" size="18.0"/></font></Label>
+                        <VBox fx:id="infoBox" spacing="25.0" alignment="CENTER_LEFT">
+                            <Label text="Edit Profile Information" textFill="#2d3436"><font><Font name="Segoe UI Bold" size="20.0"/></font></Label>
 
-                            <VBox spacing="5">
-                                <Label text="Username" textFill="#7f8c8d"/>
-                                <TextField fx:id="usernameField" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ecf0f1;"/>
+                            <VBox spacing="8">
+                                <Label text="Username" textFill="#636e72" style="-fx-font-weight: bold;"/>
+                                <TextField fx:id="usernameField" style="-fx-padding: 12; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10;"/>
                             </VBox>
 
-                            <VBox spacing="5">
-                                <Label text="Email Address" textFill="#7f8c8d"/>
-                                <TextField fx:id="emailField" editable="false" style="-fx-padding: 10; -fx-background-radius: 5; -fx-background-color: #f8f9fa; -fx-border-color: #ecf0f1;"/>
+                            <VBox spacing="8">
+                                <Label text="Email Address" textFill="#636e72" style="-fx-font-weight: bold;"/>
+                                <TextField fx:id="emailField" editable="false" style="-fx-padding: 12; -fx-background-radius: 10; -fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-text-fill: #b2bec3;"/>
                             </VBox>
 
-                            <VBox spacing="5">
-                                <Label text="Bio / Role" textFill="#7f8c8d"/>
-                                <TextArea fx:id="bioField" prefHeight="80.0" wrapText="true" style="-fx-background-radius: 5; -fx-border-color: #ecf0f1;"/>
+                            <VBox spacing="8">
+                                <Label text="Bio / Role" textFill="#636e72" style="-fx-font-weight: bold;"/>
+                                <TextArea fx:id="bioField" prefHeight="100.0" wrapText="true" style="-fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-control-inner-background: white;"/>
                             </VBox>
 
                             <Button text="Save Changes" onAction="#saveInfo" maxWidth="Infinity"
-                                    style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 12; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                                    style="-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 12; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px;">
+                                <effect><DropShadow color="rgba(74, 0, 224, 0.3)" radius="5" offsetY="2"/></effect>
+                            </Button>
                         </VBox>
 
-                        <VBox fx:id="securityBox" spacing="20.0" alignment="CENTER_LEFT" visible="false">
-                            <Label text="Security Settings" textFill="#c0392b"><font><Font name="System Bold" size="18.0"/></font></Label>
+                        <VBox fx:id="securityBox" spacing="25.0" alignment="CENTER_LEFT" visible="false">
+                            <Label text="Security Settings" textFill="#e74c3c"><font><Font name="Segoe UI Bold" size="20.0"/></font></Label>
 
-                            <VBox spacing="5">
-                                <Label text="Current Password" textFill="#7f8c8d"/>
-                                <PasswordField fx:id="currentPasswordField" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ecf0f1;"/>
+                            <VBox spacing="8">
+                                <Label text="Current Password" textFill="#636e72" style="-fx-font-weight: bold;"/>
+                                <PasswordField fx:id="currentPasswordField" style="-fx-padding: 12; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10;"/>
                             </VBox>
 
-                            <VBox spacing="5">
-                                <Label text="New Password" textFill="#7f8c8d"/>
-                                <PasswordField fx:id="newPasswordField" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ecf0f1;"/>
+                            <VBox spacing="8">
+                                <Label text="New Password" textFill="#636e72" style="-fx-font-weight: bold;"/>
+                                <PasswordField fx:id="newPasswordField" style="-fx-padding: 12; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10;"/>
                             </VBox>
 
-                            <VBox spacing="5">
-                                <Label text="Confirm New Password" textFill="#7f8c8d"/>
-                                <PasswordField fx:id="confirmPasswordField" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ecf0f1;"/>
+                            <VBox spacing="8">
+                                <Label text="Confirm New Password" textFill="#636e72" style="-fx-font-weight: bold;"/>
+                                <PasswordField fx:id="confirmPasswordField" style="-fx-padding: 12; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10;"/>
                             </VBox>
 
                             <Button text="Update Password" onAction="#updatePassword" maxWidth="Infinity"
-                                    style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 12; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                                    style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 12; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px;">
+                                <effect><DropShadow color="rgba(231, 76, 60, 0.3)" radius="5" offsetY="2"/></effect>
+                            </Button>
                         </VBox>
 
                     </StackPane>

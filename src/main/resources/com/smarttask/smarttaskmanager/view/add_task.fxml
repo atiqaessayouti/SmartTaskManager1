@@ -9,34 +9,49 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="650.0" prefWidth="480.0" spacing="15.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smarttask.smarttaskmanager.controller.AddTaskController">
+<VBox prefHeight="650.0" prefWidth="500.0" spacing="20.0"
+      style="-fx-background-color: white; -fx-padding: 35; -fx-background-radius: 15; -fx-border-color: #f1f2f6; -fx-border-width: 2; -fx-border-radius: 15;"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.smarttask.smarttaskmanager.controller.AddTaskController">
 
-    <Label text="New Task" textFill="#2c3e50">
-        <font><Font name="System Bold" size="26.0" /></font>
-        <VBox.margin><Insets bottom="10.0" /></VBox.margin>
+    <effect>
+        <DropShadow color="rgba(0,0,0,0.1)" radius="15" offsetY="5"/>
+    </effect>
+
+    <Label text="New Task" textFill="#2d3436">
+        <font><Font name="Segoe UI Bold" size="26.0" /></font>
+        <VBox.margin><Insets bottom="5.0" /></VBox.margin>
     </Label>
 
     <VBox spacing="8.0">
-        <Label text="Title:" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
+        <Label text="Title" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
         <HBox spacing="10.0">
-            <TextField fx:id="tfTitle" promptText="e.g., Examen ghda urgent" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7;" HBox.hgrow="ALWAYS" />
-            <Button onAction="#handleAISuggestion" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand;" text="🤖 AI" />
+            <TextField fx:id="tfTitle" promptText="e.g., Examen Java Urgent"
+                       style="-fx-padding: 12; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10; -fx-background-color: #f8f9fa;" HBox.hgrow="ALWAYS" />
+
+            <Button onAction="#handleAISuggestion" text="🤖 AI Auto-Fill"
+                    style="-fx-background-color: linear-gradient(to right, #a18cd1, #fbc2eb); -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 10; -fx-padding: 10;">
+                <effect><DropShadow color="rgba(0,0,0,0.1)" radius="5" offsetY="2"/></effect>
+            </Button>
         </HBox>
     </VBox>
 
     <VBox spacing="8.0">
-        <Label text="Description:" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
-        <TextArea fx:id="taDescription" prefHeight="80.0" promptText="Add more details..." style="-fx-border-color: #bdc3c7;" wrapText="true" />
+        <Label text="Description" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
+        <TextArea fx:id="taDescription" prefHeight="100.0" promptText="Add more details..." wrapText="true"
+                  style="-fx-background-color: transparent; -fx-control-inner-background: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dfe6e9; -fx-border-radius: 10;" />
     </VBox>
 
     <HBox spacing="20.0">
         <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-            <Label text="Priority:" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
-            <ComboBox fx:id="cbPriority" maxWidth="Infinity">
+            <Label text="Priority" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
+            <ComboBox fx:id="cbPriority" maxWidth="Infinity"
+                      style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 5;">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="High" /><String fx:value="Medium" /><String fx:value="Low" />
@@ -46,15 +61,17 @@
             </ComboBox>
         </VBox>
         <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-            <Label text="Deadline:" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
-            <DatePicker fx:id="dpDeadline" maxWidth="Infinity" />
+            <Label text="Deadline" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
+            <DatePicker fx:id="dpDeadline" maxWidth="Infinity"
+                        style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 5;"/>
         </VBox>
     </HBox>
 
     <HBox spacing="20.0">
         <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-            <Label text="Recurrence:" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
-            <ComboBox fx:id="cbRecurrence" maxWidth="Infinity">
+            <Label text="Recurrence" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
+            <ComboBox fx:id="cbRecurrence" maxWidth="Infinity"
+                      style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 5;">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="NONE" /><String fx:value="DAILY" /><String fx:value="WEEKLY" /><String fx:value="MONTHLY" />
@@ -64,18 +81,25 @@
             </ComboBox>
         </VBox>
         <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-            <Label text="Parent Task:" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
-            <ComboBox fx:id="cbParentTask" maxWidth="Infinity" promptText="Optional" />
+            <Label text="Parent Task" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
+            <ComboBox fx:id="cbParentTask" maxWidth="Infinity" promptText="Optional"
+                      style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 5;"/>
         </VBox>
     </HBox>
 
     <VBox spacing="8.0">
-        <Label text="Category (AI Suggested):" textFill="#7f8c8d"><font><Font name="System Bold" size="14.0" /></font></Label>
-        <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Auto-detected or Select..." />
+        <Label text="Category (AI Suggested)" textFill="#636e72"><font><Font name="Segoe UI Bold" size="13.0" /></font></Label>
+        <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Auto-detected or Select..."
+                  style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 5;"/>
     </VBox>
 
-    <HBox alignment="CENTER_RIGHT">
-        <Button onAction="#saveTask" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 25; -fx-cursor: hand;" text="Save Task" />
+    <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 10 0 0 0;">
+        <Button text="Cancel" style="-fx-background-color: transparent; -fx-text-fill: #95a5a6; -fx-cursor: hand; -fx-font-weight: bold;"/>
+
+        <Button onAction="#saveTask" text="Save Task"
+                style="-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 12 30; -fx-cursor: hand; -fx-background-radius: 25; -fx-font-size: 14px;">
+            <effect><DropShadow color="rgba(74, 0, 224, 0.3)" radius="10" offsetY="3"/></effect>
+        </Button>
     </HBox>
 
 </VBox>

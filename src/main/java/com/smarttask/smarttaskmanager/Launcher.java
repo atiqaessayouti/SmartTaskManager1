@@ -8,31 +8,33 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-// ⚠️ HADI HIYA LI KANT NAQSSA ⚠️
 public class Launcher extends Application {
 
-    // Méthode Main (Bach demarra l'app)
     public static void main(String[] args) {
         launch();
     }
 
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("view/login.fxml"));
+        // ✅ التغيير هنا: فتح صفحة الـ Welcome أولاً بدلاً من الـ Login
+        FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("view/welcome.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
 
-        // --- PARTIE LOGO (Li zedna 9bila) ---
+        // --- PARTIE LOGO ---
         try {
-            // T2kdi mn l'massar (path)
+            // تحميل اللوغو الخاص بالتطبيق
             Image icon = new Image(getClass().getResourceAsStream("images/logo.png"));
             stage.getIcons().add(icon);
         } catch (Exception e) {
             System.out.println("Logo introuvable: " + e.getMessage());
         }
-        // ------------------------------------
+        // -------------------
 
-        stage.setTitle("Smart Task Manager");
+        stage.setTitle("Smart Task Manager | Welcome");
         stage.setScene(scene);
+
+        // منع تغيير حجم النافذة للحفاظ على أبعاد التصميم العصري
+        stage.setResizable(false);
         stage.show();
     }
 }
