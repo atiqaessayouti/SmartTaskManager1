@@ -7,10 +7,10 @@ import java.util.Properties;
 
 public class EmailUtil {
 
-    // 📧 Config dyal Gmail dyalk
+
     private static final String MY_EMAIL = "atiqaessayouti@gmail.com";
 
-    // 🔑 L'App Password li 3titini (16 caractères)
+
     private static final String MY_PASSWORD = "vebp eywz lxqe xjez";
 
     public static void sendEmail(String recipient, String subject, String content) throws Exception {

@@ -25,7 +25,7 @@ public class TaskDetailsController {
     @FXML private Label lblSelectedFile; // <-- Label jdid
 
     private Task currentTask;
-    private File selectedFile; // <-- Variable bach nkhbbiw l'fichier
+    private File selectedFile;
 
     // Initialisation
     public void setTaskData(Task task) {
@@ -34,24 +34,23 @@ public class TaskDetailsController {
         if (descriptionArea != null) descriptionArea.setText(task.getDescription());
         if (shareField != null) shareField.setText(task.getSharedWith());
 
-        loadComments(); // Jib les commentaires
+        loadComments(); //
     }
 
-    // --- 1. GESTION DES FICHIERS (ATTACHMENTS) ---
-
+    //
     @FXML
     public void handleAttachFile() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Choisir un fichier à joindre");
+        fileChooser.setTitle("Choose a file to attach");
 
-        // Filtre (Optionnel: Tqdri tkhllih yjib kulchi)
+
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Tous les fichiers", "*.*"),
+                new FileChooser.ExtensionFilter("All files", "*.*"),
                 new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"),
                 new FileChooser.ExtensionFilter("PDF", "*.pdf")
         );
 
-        // Jib l'fenêtre l7aliya bach t7ll foqha
+
         Stage stage = (Stage) commentInput.getScene().getWindow();
         this.selectedFile = fileChooser.showOpenDialog(stage);
 
@@ -66,12 +65,11 @@ public class TaskDetailsController {
     public void handleAddComment() {
         String content = commentInput.getText();
 
-        // Ila makan la texte la fichier, ma ndiro walo
         if (content.isEmpty() && selectedFile == null) return;
 
         String currentUser = UserSession.getInstance().getEmail();
 
-        // Requete jdida fiha attachment_path
+
         String sql = "INSERT INTO comments (task_id, user_email, content, attachment_path) VALUES (?, ?, ?, ?)";
 
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
@@ -81,7 +79,7 @@ public class TaskDetailsController {
             prepare.setString(2, currentUser);
             prepare.setString(3, content);
 
-            // Ila kan fichier, n7tto l'path dyalo, sinon Null
+
             if (selectedFile != null) {
                 prepare.setString(4, selectedFile.getAbsolutePath());
             } else {
@@ -90,7 +88,7 @@ public class TaskDetailsController {
 
             prepare.executeUpdate();
 
-            // Reset (Nddfo l'blassa)
+
             commentInput.clear();
             selectedFile = null;
             lblSelectedFile.setText("");
@@ -123,10 +121,10 @@ public class TaskDetailsController {
                 // Formatage: "User: Message"
                 String message = user + ": " + content;
 
-                // Ila kan fichier, nzidou icone 📎
+
                 if (path != null && !path.isEmpty()) {
                     File f = new File(path);
-                    message += "  📎 [Fichier: " + f.getName() + "]";
+                    message += "  📎 [File: " + f.getName() + "]";
                 }
 
                 comments.add(message);
@@ -138,7 +136,7 @@ public class TaskDetailsController {
         }
     }
 
-    // --- 4. PARTAGE DE TÂCHE ---
+    // --- 4. PARTAGE DE
 
     @FXML
     public void handleShare() {
@@ -153,7 +151,7 @@ public class TaskDetailsController {
             prepare.setInt(2, currentTask.getId());
             prepare.executeUpdate();
 
-            showAlert("Succès", "Tâche partagée avec " + emailToShare);
+            showAlert("Succès", "Task shared with " + emailToShare);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -42,11 +42,7 @@
                 <Button text="📊 Overview" maxWidth="Infinity"
                         style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-background-radius: 10; -fx-cursor: hand;"/>
 
-                <Button text="👥 User Management" maxWidth="Infinity"
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-cursor: hand;"/>
 
-                <Button text="⚙️ Settings" maxWidth="Infinity"
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-cursor: hand;"/>
             </VBox>
 
             <Button onAction="#handleLogout" text="Log Out" maxWidth="Infinity"

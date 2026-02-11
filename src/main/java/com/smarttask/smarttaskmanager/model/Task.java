@@ -1,10 +1,10 @@
 package com.smarttask.smarttaskmanager.model;
 
 import java.time.LocalDate;
-import java.sql.Timestamp; // ✅ ضروري
+import java.sql.Timestamp;
 
 public class Task {
-    // ... الحقول القديمة ...
+
     private int id;
     private String title;
     private String description;
@@ -16,9 +16,9 @@ public class Task {
     private String recurrenceType;
     private Integer parentId;
 
-    // ✅ الحقول الجديدة
-    private long timeSpent;       // الوقت الإجمالي بالثواني
-    private Timestamp timerStart; // وقت بداية العداد
+    // ✅
+    private long timeSpent;       //
+    private Timestamp timerStart; //
 
     // ✅ Constructor الجديد (12 باراميتر)
     public Task(int id, String title, String description, String priority, String status,
@@ -39,14 +39,14 @@ public class Task {
         this.timerStart = timerStart;
     }
 
-    // ✅ Getters الجديدة
+    // ✅
     public long getTimeSpent() { return timeSpent; }
     public Timestamp getTimerStart() { return timerStart; }
 
-    // واش العداد خدام دابا؟
+    //
     public boolean isTimerRunning() { return timerStart != null; }
 
-    // ... باقي الـ Getters القديمة (getId, getTitle...) خليها كما هي ...
+    // .
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }

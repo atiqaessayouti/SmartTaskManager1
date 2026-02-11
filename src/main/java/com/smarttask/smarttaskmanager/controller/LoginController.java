@@ -8,6 +8,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert; // ✅ ضروري للـ Alert
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -18,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.regex.Pattern; // ✅ ضروري للتحقق من الإيميل
 
 public class LoginController {
 
@@ -30,14 +32,19 @@ public class LoginController {
         String email = emailField.getText();
         String password = passwordField.getText();
 
+        // 1. التحقق من أن الخانات ليست فارغة
         if (email.isEmpty() || password.isEmpty()) {
-            showError("Veuillez remplir tous les champs.");
+            showAlert(Alert.AlertType.WARNING, "Champs vides", "Veuillez remplir tous les champs !");
+            return;
+        }
+
+        // 2. التحقق من صيغة الإيميل (Email Syntax Validation)
+        if (!isValidEmail(email)) {
+            showAlert(Alert.AlertType.WARNING, "Format Email Invalide", "L'adresse email n'est pas valide.\nExemple: user@gmail.com");
             return;
         }
 
         Connection connectDB = DatabaseConnection.getInstance().getConnection();
-
-        // ✅ CORRECTED QUERY: On récupère 'role' (pas is_admin)
         String query = "SELECT user_id, role FROM users WHERE email = ? AND password_hash = ?";
 
         try (PreparedStatement statement = connectDB.prepareStatement(query)) {
@@ -47,56 +54,51 @@ public class LoginController {
             ResultSet queryResult = statement.executeQuery();
 
             if (queryResult.next()) {
+                // ✅ تسجيل الدخول ناجح
                 int userId = queryResult.getInt("user_id");
-
-                // ✅ CORRECTED LOGIC:
-                // La base de données retourne une String ("admin", "user", etc.)
                 String role = queryResult.getString("role");
-
-                // On vérifie si c'est admin
                 boolean isAdmin = "admin".equalsIgnoreCase(role);
 
-                // Initialiser la session
                 UserSession.getInstance(userId, email);
-
-                // Passer à la méthode de navigation
                 goToDashboard(event, isAdmin);
+
             } else {
-                showError("Email ou mot de passe incorrect.");
+                // ❌ كلمة المرور أو الإيميل خاطئ (Alert)
+                showAlert(Alert.AlertType.ERROR, "\n" +
+                        "Connection failed", "Incorrect email or password !");
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            showError("Erreur de connexion à la base de données.");
+            showAlert(Alert.AlertType.ERROR, "Erreur Base de Données", "Impossible de se connecter au serveur.");
         }
+    }
+
+    // ✅ دالة مساعدة للتحقق من صيغة الإيميل (Regex)
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        Pattern pat = Pattern.compile(emailRegex);
+        return pat.matcher(email).matches();
+    }
+
+    // ✅ دالة مساعدة لإظهار النوافذ المنبثقة (Alerts)
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     private void goToDashboard(ActionEvent event, boolean isAdmin) {
         try {
-            String path;
-            String roleName;
+            String path = isAdmin ? "/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml"
+                    : "/com/smarttask/smarttaskmanager/view/dashboard.fxml";
+            String roleName = isAdmin ? "Admin" : "User";
 
-            // Définir le chemin EXACT selon le rôle
-            if (isAdmin) {
-                path = "/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml";
-                roleName = "Admin";
-            } else {
-                path = "/com/smarttask/smarttaskmanager/view/dashboard.fxml";
-                roleName = "User";
-            }
-
-            System.out.println("Tentative de chargement du fichier : " + path);
-
-            // Charger le fichier FXML
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
             Parent root = loader.load();
 
-            if (root == null) {
-                errorLabel.setText("Erreur : Fichier FXML introuvable !");
-                return;
-            }
-
-            // Changer la scène
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Smart Task Manager - " + roleName);
@@ -105,43 +107,31 @@ public class LoginController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            errorLabel.setText("Erreur critique : Vue introuvable !");
-        } catch (Exception e) {
-            e.printStackTrace();
-            errorLabel.setText("Erreur inconnue : " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Erreur Critique", "Impossible de charger le Dashboard !");
         }
     }
 
     @FXML
     public void handleGoToRegister(ActionEvent event) {
+        navigate(event, "/com/smarttask/smarttaskmanager/view/register.fxml");
+    }
+
+    @FXML
+    public void handleForgotPassword(ActionEvent event) {
+        navigate(event, "/com/smarttask/smarttaskmanager/view/forgot_password.fxml");
+    }
+
+    // دالة مساعدة للتنقل لتفادي تكرار الكود
+    private void navigate(ActionEvent event, String fxmlPath) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/register.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            showError("Vue Register introuvable.");
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Vue introuvable : " + fxmlPath);
         }
-    }
-
-    @FXML
-    public void handleForgotPassword(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/forgot_password.fxml"));
-            Scene scene = new Scene(loader.load());
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.out.println("Erreur chargement forgot password: " + e.getMessage());
-            showError("Fonctionnalité non disponible.");
-        }
-    }
-
-    private void showError(String msg) {
-        errorLabel.setText(msg);
-        errorLabel.setVisible(true);
     }
 }

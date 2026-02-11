@@ -16,6 +16,7 @@ import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox; // Import important
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -25,6 +26,15 @@ import java.util.Optional;
 public class AdminDashboardController {
 
     @FXML private BorderPane mainBorderPane;
+
+    // --- NAVIGATION PANES (LES BOITES QUI CHANGENT) ---
+    @FXML private VBox overviewPane;       // Boite Charts & Metrics
+       // Boite Settings
+
+    // --- NAVIGATION BUTTONS (SIDEBAR) ---
+    @FXML private Button btnOverview;
+    @FXML private Button btnUsers;
+    @FXML private Button btnSettings;
 
     // --- PRODUCTIVITY METRICS LABELS ---
     @FXML private Label lblTotalTasks;
@@ -44,7 +54,7 @@ public class AdminDashboardController {
 
     @FXML private TextField emailInput;
     @FXML private TextField passwordInput;
-    @FXML private CheckBox isAdminInput; // Case à cocher pour Admin
+    @FXML private CheckBox isAdminInput;
     @FXML private TextField searchField;
 
     private ObservableList<User> userList = FXCollections.observableArrayList();
@@ -53,15 +63,53 @@ public class AdminDashboardController {
 
     @FXML
     public void initialize() {
+        // Charger les données
         setupMetrics();
         setupAnalytics();
         setupUserTable();
         addButtonToTable();
         loadData();
         setupSearch();
+
+        // ✅ Afficher l'Overview par défaut au démarrage
+        handleShowOverview(null);
     }
 
-    // --- 1. PRODUCTIVITY METRICS ---
+    // =========================================================
+    // 🧭 NAVIGATION LOGIC (LE CODE QUI FAIT MARCHER LA SIDEBAR)
+    // =========================================================
+
+    @FXML
+    public void handleShowOverview(ActionEvent event) {
+        // 1. Visibilité des Panes
+        if(overviewPane != null) overviewPane.setVisible(true);
+
+
+        // 3. Style des Boutons (Active State)
+        setActiveStyle(btnOverview);
+        setInactiveStyle(btnUsers);
+        setInactiveStyle(btnSettings);
+    }
+
+
+
+    // Helper pour le style CSS des boutons
+    private void setActiveStyle(Button btn) {
+        if (btn != null) {
+            btn.setStyle("-fx-background-color: #5b4bc4; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold;");
+        }
+    }
+
+    private void setInactiveStyle(Button btn) {
+        if (btn != null) {
+            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-background-radius: 10;");
+        }
+    }
+
+    // =========================================================
+    // 📊 RESTE DU CODE (LOGIQUE EXISTANTE)
+    // =========================================================
+
     private void setupMetrics() {
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement st = conn.createStatement()) {
@@ -80,8 +128,9 @@ public class AdminDashboardController {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    // --- 2. ANALYTICS ---
     private void setupAnalytics() {
+        if (timeTrackingPieChart == null || performanceLineChart == null) return;
+
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement st = conn.createStatement();
@@ -107,57 +156,54 @@ public class AdminDashboardController {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    // --- 3. CHARGEMENT DONNÉES (CRUD) ---
     private void loadData() {
+        if (userTable == null) return;
         userList.clear();
-        // ✅ CORRECTION 1: On select 'role' au lieu de 'is_admin'
         String query = "SELECT user_id, email, role FROM users";
-
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(query)) {
-
             while (rs.next()) {
-                int id = rs.getInt("user_id");
-                String email = rs.getString("email");
-                String role = rs.getString("role"); // On récupère la string "admin" ou "user"
-
-                userList.add(new User(id, email, role));
+                userList.add(new User(rs.getInt("user_id"), rs.getString("email"), rs.getString("role")));
             }
             userTable.setItems(userList);
-
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Erreur BDD", "Impossible de charger les utilisateurs: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Erreur BDD", "Unable to load users: " + e.getMessage());
         }
-        setupSearch();
     }
-
-    // --- 4. ACTIONS CRUD ---
 
     @FXML
     private void handleAddUser() {
+        // 1. التأكد أن الخانات ماشي خاويين
         if (emailInput.getText().isEmpty() || passwordInput.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Attention", "Veuillez remplir l'email et le mot de passe.");
+            showAlert(Alert.AlertType.WARNING, "Attention", "Please fill in email and password.");
             return;
         }
 
-        // ✅ CORRECTION 2: On transforme la CheckBox en String "admin" ou "user"
+        String email = emailInput.getText();
         String role = isAdminInput.isSelected() ? "admin" : "user";
 
-        // ✅ CORRECTION SQL: On utilise la colonne 'role'
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pst = conn.prepareStatement("INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)")) {
+        // 2. ✅ الحل: تصاوبي username من الإيميل (مثلاً ali@gmail.com كيعطينا ali)
+        String generatedUsername = email.split("@")[0];
 
-            pst.setString(1, emailInput.getText());
+        // 3. ✅ تحديث الـ SQL باش يشمل عمود الـ username
+        String sql = "INSERT INTO users (email, password_hash, role, username) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
+
+            pst.setString(1, email);
             pst.setString(2, passwordInput.getText());
-            pst.setString(3, role); // On envoie le String, PAS le TableColumn
+            pst.setString(3, role);
+            pst.setString(4, generatedUsername); // صيفطنا اليوزرنيم للداتابيز
 
             pst.executeUpdate();
 
-            loadData();
-            handleClear();
-            showAlert(Alert.AlertType.INFORMATION, "Succès", "Utilisateur ajouté avec succès !");
+            loadData(); // تحديث الجدول
+            handleClear(); // مسح الخانات
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "User added successfully!");
+
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Erreur SQL", e.getMessage());
@@ -167,66 +213,46 @@ public class AdminDashboardController {
     @FXML
     private void handleUpdateUser() {
         if (selectedUserId == -1) {
-            showAlert(Alert.AlertType.WARNING, "Sélection requise", "Veuillez cliquer sur 'Edit' dans le tableau d'abord.");
+            showAlert(Alert.AlertType.WARNING, "Sélection requise", "Select a user first.");
             return;
         }
-
         String newEmail = emailInput.getText();
         String newPass = passwordInput.getText();
-        // ✅ CORRECTION 3: Logic role pour update
         String role = isAdminInput.isSelected() ? "admin" : "user";
 
-        if (newEmail.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Attention", "L'email ne peut pas être vide.");
-            return;
-        }
-
-        // SCÉNARIO 1 : Mot de passe vide -> On met à jour Email + Role
-        if (newPass.isEmpty()) {
-            // ✅ CORRECTION SQL
-            try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, role = ? WHERE user_id = ?")) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+            if (newPass.isEmpty()) {
+                PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, role = ? WHERE user_id = ?");
                 pst.setString(1, newEmail);
-                pst.setString(2, role); // setString, pas setInt
+                pst.setString(2, role);
                 pst.setInt(3, selectedUserId);
                 pst.executeUpdate();
-
-                loadData();
-                handleClear();
-                showAlert(Alert.AlertType.INFORMATION, "Mise à jour", "Email et Rôle mis à jour (Mot de passe inchangé).");
-            } catch (SQLException e) { e.printStackTrace(); }
-        }
-        // SCÉNARIO 2 : Mot de passe rempli -> On met à jour TOUT
-        else {
-            // ✅ CORRECTION SQL
-            try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                 PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, password_hash = ?, role = ? WHERE user_id = ?")) {
+            } else {
+                PreparedStatement pst = conn.prepareStatement("UPDATE users SET email = ?, password_hash = ?, role = ? WHERE user_id = ?");
                 pst.setString(1, newEmail);
                 pst.setString(2, newPass);
-                pst.setString(3, role); // setString
+                pst.setString(3, role);
                 pst.setInt(4, selectedUserId);
                 pst.executeUpdate();
-
-                loadData();
-                handleClear();
-                showAlert(Alert.AlertType.INFORMATION, "Mise à jour", "Tout a été mis à jour avec succès !");
-            } catch (SQLException e) { e.printStackTrace(); }
-        }
+            }
+            loadData();
+            handleClear();
+            showAlert(Alert.AlertType.INFORMATION, "Mise à jour", "User updated!");
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
     @FXML
     private void handlePromoteUser() {
         if (selectedUserId != -1) {
-            // ✅ CORRECTION SQL: Update role = 'admin'
             try (Connection conn = DatabaseConnection.getInstance().getConnection();
                  PreparedStatement pst = conn.prepareStatement("UPDATE users SET role = 'admin' WHERE user_id = ?")) {
                 pst.setInt(1, selectedUserId);
                 pst.executeUpdate();
                 loadData();
-                showAlert(Alert.AlertType.INFORMATION, "Succès", "L'utilisateur est maintenant Administrateur ! 👮‍♂️");
+                showAlert(Alert.AlertType.INFORMATION, "Succès", "User promoted to Admin!");
             } catch (SQLException e) { e.printStackTrace(); }
         } else {
-            showAlert(Alert.AlertType.WARNING, "Attention", "Sélectionnez un utilisateur à promouvoir.");
+            showAlert(Alert.AlertType.WARNING, "Attention", "Select a user.");
         }
     }
 
@@ -238,9 +264,8 @@ public class AdminDashboardController {
         selectedUserId = -1;
     }
 
-    // --- 5. TABLEAU & BOUTONS ---
-
     private void setupUserTable() {
+        if (userTable == null) return;
         colId.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getId()));
         colEmail.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmail()));
         colRole.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRole()));
@@ -248,6 +273,7 @@ public class AdminDashboardController {
     }
 
     private void addButtonToTable() {
+        if (colAction == null) return;
         colAction.setCellFactory(param -> new TableCell<>() {
             final Button btnEdit = new Button("Edit");
             final Button btnDel = new Button("Delete");
@@ -256,29 +282,18 @@ public class AdminDashboardController {
             {
                 btnEdit.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-cursor: hand;");
                 btnDel.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;");
-
-                // --- ACTION EDIT ---
                 btnEdit.setOnAction(e -> {
                     User u = getTableView().getItems().get(getIndex());
                     emailInput.setText(u.getEmail());
                     passwordInput.setText("");
-
-                    // ✅ CORRECTION: On vérifie si le rôle (String) est "admin"
-                    if (isAdminInput != null) {
-                        isAdminInput.setSelected("admin".equalsIgnoreCase(u.getRole()));
-                    }
-
+                    if (isAdminInput != null) isAdminInput.setSelected("admin".equalsIgnoreCase(u.getRole()));
                     selectedUserId = u.getId();
                 });
-
-                // --- ACTION DELETE ---
                 btnDel.setOnAction(e -> {
                     User u = getTableView().getItems().get(getIndex());
                     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setTitle("Suppression");
-                    alert.setHeaderText("Supprimer l'utilisateur ?");
-                    alert.setContentText("Êtes-vous sûr de vouloir supprimer : " + u.getEmail() + " ?");
-
+                    alert.setTitle("Delete");
+                    alert.setContentText("Delete " + u.getEmail() + "?");
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.OK) {
                         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -286,12 +301,10 @@ public class AdminDashboardController {
                             pst.setInt(1, u.getId());
                             pst.executeUpdate();
                             loadData();
-                            showAlert(Alert.AlertType.INFORMATION, "Supprimé", "Utilisateur supprimé.");
                         } catch (SQLException ex) { ex.printStackTrace(); }
                     }
                 });
             }
-
             @Override protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 setGraphic(empty ? null : pane);
@@ -299,16 +312,8 @@ public class AdminDashboardController {
         });
     }
 
-    // --- UTILITAIRES ---
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
     private void setupSearch() {
+        if (searchField == null || userTable == null) return;
         FilteredList<User> filteredData = new FilteredList<>(userList, b -> true);
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             filteredData.setPredicate(user -> newVal == null || newVal.isEmpty() || user.getEmail().toLowerCase().contains(newVal.toLowerCase()));
@@ -316,6 +321,10 @@ public class AdminDashboardController {
         SortedList<User> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(userTable.comparatorProperty());
         userTable.setItems(sortedData);
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type); alert.setTitle(title); alert.setContentText(content); alert.showAndWait();
     }
 
     @FXML private void toggleTheme() {

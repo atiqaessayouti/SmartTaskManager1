@@ -148,7 +148,7 @@ public class CalendarController {
 
             ResultSet rs = prepare.executeQuery();
             while (rs.next()) {
-                // ✅ التصحيح: تمرير 12 باراميتر كاملة
+                //
                 Task t = new Task(
                         rs.getInt("id"),
                         rs.getString("title"),
@@ -181,7 +181,7 @@ public class CalendarController {
             prepare.setString(3, UserSession.getInstance().getEmail());
             ResultSet rs = prepare.executeQuery();
             while (rs.next()) {
-                // ✅ التصحيح: تمرير 12 باراميتر كاملة
+                // ✅
                 tasks.add(new Task(
                         rs.getInt("id"),
                         rs.getString("title"),

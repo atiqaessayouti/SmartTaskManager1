@@ -17,8 +17,7 @@ public class MLPredictionService {
     public void trainModel(Object ignored) { // Parameter ignored hit ghan-jibu mn DB direct
         System.out.println("🤖 Lancement du Data Mining (Training)...");
 
-        // SQL Query: Jib Priority w Moyen dyal l-ferq b l-iyam (DATEDIFF)
-        // Kan-akhdu ghir deadlines li f l-futur (positive)
+
         String sql = "SELECT priority, AVG(DATEDIFF(deadline, created_at)) as avg_days " +
                 "FROM tasks " +
                 "WHERE deadline IS NOT NULL " +
@@ -52,7 +51,7 @@ public class MLPredictionService {
 
     // 🔮 PRÉDICTION
     public int predictDaysNeeded(String priority) {
-        // Valeurs par défaut (au cas où la BDD est vide)
+
         double defaultDays = switch (priority) {
             case "High" -> 2.0;
             case "Medium" -> 5.0;
@@ -60,10 +59,10 @@ public class MLPredictionService {
             default -> 3.0;
         };
 
-        // Jib l-valeur mn l-model, sinon rje3 l default
+
         double prediction = modelWeights.getOrDefault(priority, defaultDays);
 
-        // Arrondir w rjj3
+
         return (int) Math.round(prediction);
     }
 }

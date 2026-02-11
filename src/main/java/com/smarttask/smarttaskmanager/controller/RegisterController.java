@@ -42,14 +42,14 @@ public class RegisterController {
 
         // 1. Vérifier si c'est vide
         if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Remplissez tous les champs !");
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Complete all fields!");
             return;
         }
 
-        // 🛑 2. VERIFICATION EMAIL (HNA FIN KAN-BLOQUIW L-KHOUT)
+
         if (!isValidEmail(email)) {
-            showAlert(Alert.AlertType.ERROR, "Email Invalide", "L'email n'est pas valide (Ex: test@gmail.com).");
-            return; // Stop, ma-t-kmmlich l-code
+            showAlert(Alert.AlertType.ERROR, "Email Invalide", "The email address is invalid. (Ex: test@gmail.com).");
+            return;
         }
 
         // 3. Insérer dans la base de données

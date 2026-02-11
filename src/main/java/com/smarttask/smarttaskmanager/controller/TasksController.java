@@ -1,6 +1,6 @@
 package com.smarttask.smarttaskmanager.controller;
 
-import com.smarttask.smarttaskmanager.DAO.TaskDAO; // ✅ استيراد DAO
+import com.smarttask.smarttaskmanager.DAO.TaskDAO; // ✅
 import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.service.RecurrenceService;
 import com.smarttask.smarttaskmanager.util.UserSession;
@@ -27,7 +27,7 @@ public class TasksController {
     @FXML private FlowPane tasksContainer;
     @FXML private TextField searchField;
 
-    // ✅ نستخدم DAO للتعامل مع البيانات بدلاً من SQL المباشر
+    //
     private TaskDAO taskDAO = new TaskDAO();
     private List<Task> allTasks = new ArrayList<>();
 
@@ -39,7 +39,7 @@ public class TasksController {
 
     private void loadTasks() {
         allTasks.clear();
-        // ✅ استخدام DAO لجلب المهام (يضمن قراءة الـ 12 باراميتر بشكل صحيح)
+        //
         allTasks = taskDAO.getAllTasks();
         displayTasks("");
     }
@@ -55,10 +55,10 @@ public class TasksController {
 
     private VBox createTaskCard(Task task) {
         VBox card = new VBox(12);
-        card.setPrefSize(310, 260); // زيادة الطول قليلاً لاستيعاب العداد
+        card.setPrefSize(310, 260); //
         card.setStyle("-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 6); -fx-padding: 20;");
 
-        // تمييز المهام الفرعية بخط أزرق
+        //
         if (task.getParentId() != null) {
             card.setStyle(card.getStyle() + "-fx-border-color: #3498db; -fx-border-width: 0 0 0 5;");
         }
@@ -70,7 +70,7 @@ public class TasksController {
         Label category = new Label(task.getCategory());
         category.setStyle("-fx-background-color: #ebedef; -fx-text-fill: #2c3e50; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 11px; -fx-font-weight: bold;");
 
-        // --- معلومات الأولوية والحالة ---
+        //
         HBox infoBox = new HBox(15);
         infoBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -88,7 +88,7 @@ public class TasksController {
 
         infoBox.getChildren().addAll(prioBox, sLbl);
 
-        // --- ⏱️ 5. إضافة زر العداد (Time Tracking) ---
+        //
         HBox timerBox = new HBox(10);
         timerBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -112,7 +112,7 @@ public class TasksController {
             } else {
                 taskDAO.startTimer(task.getId());
             }
-            loadTasks(); // تحديث الصفحة لتغيير حالة الزر
+            loadTasks(); //
         });
 
         timerBox.getChildren().addAll(btnTimer, lblTime);
@@ -136,12 +136,12 @@ public class TasksController {
 
         actions.getChildren().addAll(bEdit, bDone, bDel);
 
-        // إضافة العداد للبطاقة
+
         card.getChildren().addAll(title, category, infoBox, timerBox, actions);
         return card;
     }
 
-    // دالة التحقق من المهام الفرعية (Blocking Logic)
+    //
     private boolean hasIncompleteSubtasks(int parentId) {
         for(Task t : allTasks) {
             if(t.getParentId() != null && t.getParentId() == parentId && !"Completed".equals(t.getStatus())) {
@@ -156,15 +156,15 @@ public class TasksController {
             if (hasIncompleteSubtasks(id)) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Action Bloquée 🚫");
-                alert.setHeaderText("Impossible de terminer !");
-                alert.setContentText("Cette tâche contient des sous-tâches non terminées.\nVeuillez terminer les sous-tâches d'abord.");
+                alert.setHeaderText("Unable to complete !");
+                alert.setContentText("\n" +
+                        "This task contains unfinished subtasks.\nPlease complete the subtasks first.");
                 alert.show();
                 return;
             }
         }
 
-        // تحديث الحالة في قاعدة البيانات (يمكن إضافة دالة updateStatus في DAO مستقبلاً)
-        // حالياً نستخدم SQL مباشر للتحديث السريع للحالة
+        //
         String sql = "UPDATE tasks SET status = ? WHERE id = ?";
         try (java.sql.Connection conn = com.smarttask.smarttaskmanager.util.DatabaseConnection.getInstance().getConnection();
              java.sql.PreparedStatement pst = conn.prepareStatement(sql)) {
@@ -223,7 +223,7 @@ public class TasksController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // دالة تنسيق الوقت (ثواني -> ساعات:دقائق)
+    // د
     private String formatTime(long totalSeconds) {
         if (totalSeconds == 0) return "0m";
         long hours = totalSeconds / 3600;

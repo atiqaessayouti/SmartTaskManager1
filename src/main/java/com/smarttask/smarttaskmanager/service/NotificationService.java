@@ -32,7 +32,7 @@ public class NotificationService {
             // 1. Check INVITATIONS (Tâches partagées)
             checkInvitations(conn, email);
 
-            // 2. Check DEADLINES (Urgence < 24h)
+
             checkDeadlines(conn, email);
 
         } catch (SQLException e) {
@@ -40,7 +40,7 @@ public class NotificationService {
         }
     }
 
-    // --- 1. FONCTION DYAL INVITATIONS ---
+
     private void checkInvitations(Connection conn, String email) throws SQLException {
         String sql = "SELECT id, title FROM tasks WHERE shared_with = ? AND share_status = 'PENDING' AND reminder_sent = 0";
 
@@ -61,7 +61,7 @@ public class NotificationService {
         }
     }
 
-    // --- 2. FONCTION DYAL DEADLINES (Jdida) ---
+
     private void checkDeadlines(Connection conn, String email) throws SQLException {
         // Kan-qlbou 3la Tasks li dyali (Owner) ola M-partagyin m3aya (Accepted)
         // W li Deadline dyalhom L-YUM ola GHDA

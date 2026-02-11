@@ -18,7 +18,7 @@ public class NotificationSystem {
     public void startChecking() {
         this.userEmail = UserSession.getInstance().getEmail();
 
-        // ⏱️ مراجعة قاعدة البيانات كل 10 ثوانٍ (Real-time polling)
+        // ⏱️ (Real-time polling)
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
             checkForNewInvitations();
         }));
@@ -27,7 +27,7 @@ public class NotificationSystem {
     }
 
     private void checkForNewInvitations() {
-        // البحث عن مهام موجهة للمستخدم وحالتها 'PENDING'
+
         String sql = "SELECT id, title, user_email FROM tasks WHERE shared_with = ? AND share_status = 'PENDING'";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -41,7 +41,7 @@ public class NotificationSystem {
                 String taskTitle = rs.getString("title");
                 String sender = rs.getString("user_email");
 
-                // تشغيل التنبيه في خيط الواجهة (UI Thread)
+
                 Platform.runLater(() -> showInviteAlert(taskId, taskTitle, sender));
             }
         } catch (SQLException e) {

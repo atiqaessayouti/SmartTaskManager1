@@ -9,7 +9,7 @@ public class NLPProcessor {
 
     public static LocalDate extractDate(String text) {
         if (text == null) return null;
-        text = text.toLowerCase(); // N-rddu kulchi sghir
+        text = text.toLowerCase();
         LocalDate date = LocalDate.now();
 
         // --------------------------------------------------------
@@ -21,7 +21,7 @@ public class NLPProcessor {
             return date;
         }
 
-        // APRÈS-DEMAIN (After Tomorrow) - Khassna n-sbqoha 3la "Demain" bach ma-yghltch
+
         if (text.matches(".*\\b(after tomorrow|après-demain|pasado mañana|b3d ghda|ba3d ghda)\\b.*")) {
             return date.plusDays(2);
         }
@@ -32,7 +32,7 @@ public class NLPProcessor {
         }
 
         // --------------------------------------------------------
-        // 2. PERIODES SPÉCIALES (Fin du mois, Weekend) 🏁
+
         // --------------------------------------------------------
 
         // FIN DU MOIS
@@ -46,11 +46,10 @@ public class NLPProcessor {
         }
 
         // --------------------------------------------------------
-        // 3. CALCUL AVANCÉ (Regex Multi-Lingue) 🧠
+        //
         // --------------------------------------------------------
 
-        // "Dans X jours" (FR/EN/ES/DARIJA)
-        // (in|dans|en|mn hna) = Preposition
+
         // (days|jours|dias|yamat|yam) = Unité
         Pattern pDays = Pattern.compile("(in|dans|en|mn hna|men hna)\\s+(\\d+)\\s+(days|jours|dias|días|yamat|iyyam|yam)");
         Matcher mDays = pDays.matcher(text);
@@ -83,7 +82,7 @@ public class NLPProcessor {
         // EN: urgent, asap, important, now
         // FR: urgent, vite, important
         // ES: urgente, rapido, importante, ya, ahora
-        // DARIJA: darouri, zerba, bzrba, mohim, dghya, wa3r
+
         if (text.matches(".*\\b(urgent|asap|important|vite|now|fast|critique|urgente|rapido|ya|ahora|darouri|zerba|bzrba|dghya|mohim|mohem)\\b.*")) {
             return "High";
         }
@@ -92,7 +91,7 @@ public class NLPProcessor {
         // EN: later, low, slow
         // FR: tard, tranquille, pas pressé
         // ES: tarde, lento, tranquilo
-        // DARIJA: blati, men b3d, mn b3d, chwiya, hta mn b3d, machi darouri
+
         if (text.matches(".*\\b(later|low|slow|relax|tard|cool|tarde|lento|tranquilo|blati|mn b3d|men b3d|machi darouri)\\b.*")) {
             return "Low";
         }
