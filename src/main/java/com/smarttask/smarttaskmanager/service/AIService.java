@@ -127,4 +127,34 @@ public class AIService {
 
         return "💡 Tip: Start with the hardest task first ('Eat the Frog').";
     }
+    // زيدي هاد الدالة داخل AIService.java
+    public String getChatResponse(String message, List<Task> currentTasks) {
+        if (message == null || message.trim().isEmpty()) return "I'm listening... How can I help you?";
+        String input = message.toLowerCase();
+
+        // 1. طلب نصيحة أو حالة الإنتاجية (Insights)
+        if (containsAny(input, "advice", "status", "how am i doing", "report", "productivity")) {
+            return getProductivityInsights(currentTasks); //
+        }
+
+        // 2. سؤال عن تصنيف مهمة معينة
+        if (containsAny(input, "category", "where", "group")) {
+            return "I suggest putting this in the '" + suggestCategory(input) + "' category."; //
+        }
+
+        // 3. سؤال عن الأولوية
+        if (containsAny(input, "priority", "urgent", "important")) {
+            return "Based on your description, this looks like a " + suggestPriority(input) + " priority task."; //
+        }
+
+        // 4. تحليل التاريخ (NLP)
+        if (containsAny(input, "tomorrow", "today", "next week", "in")) {
+            java.time.LocalDate date = parseDate(input); //
+            return (date != null) ? "I detected the date: " + date : "I couldn't quite catch the date.";
+        }
+
+        // 5. رد افتراضي ذكي
+        return "I am your Smart Manager AI. You can ask me about your productivity, suggest categories for tasks, or check task priorities!";
+    }
+
 }

@@ -38,12 +38,12 @@ public class DashboardController {
     @FXML private Label lblEnRetard;
     @FXML private Label aiSuggestionLabel;
 
-    // ✅ المبيانات كاملة
     @FXML private PieChart pieChartPriority;
     @FXML private BarChart<String, Number> productivityChart;
     @FXML private BarChart<String, Number> timeSpentChart;
 
     @FXML private Button btnMyTasks;
+    @FXML private Button btnAIChat; // ✅ أضيفي هذا المعرف للزر في FXML
 
     private NotificationService notifService;
     private MLPredictionService mlModel;
@@ -59,14 +59,12 @@ public class DashboardController {
             mlModel.trainModel(null);
         } catch (Exception e) { System.err.println("⚠️ Warning ML: " + e.getMessage()); }
 
-        // 2. Loading Data (With Fake Data & Tooltips)
-        updateDashboardKPIs();
-        loadPieChartData();
-        loadPerformanceTrends();
-        loadTimeSpentChart();
+        // 2. Loading Data
+        refreshAllData();
 
-        // 3. Animations (L'astuce "Wow Effect")
+        // 3. Animations
         addHoverAnimation(btnMyTasks);
+        addHoverAnimation(btnAIChat);
         addHoverAnimation(productivityChart);
         addHoverAnimation(pieChartPriority);
         addHoverAnimation(timeSpentChart);
@@ -77,19 +75,38 @@ public class DashboardController {
         loadAIInsights();
     }
 
-    // --- ✨ Astuce: Hover Animation ---
-    private void addHoverAnimation(Node node) {
-        if (node == null) return;
-        node.setOnMouseEntered(e -> {
-            node.setScaleX(1.03); node.setScaleY(1.03); // تكبير خفيف
-            node.setStyle("-fx-cursor: hand;");
-        });
-        node.setOnMouseExited(e -> {
-            node.setScaleX(1.0); node.setScaleY(1.0);
-        });
+    private void refreshAllData() {
+        updateDashboardKPIs();
+        loadPieChartData();
+        loadPerformanceTrends();
+        loadTimeSpentChart();
     }
 
-    // --- 📊 Charts with "Demo Mode" & "Tooltips" ---
+    // =========================================================
+    // 🤖 AI CHATBOT INTEGRATION
+    // =========================================================
+
+    // ✅ فتح الشات بوت كصفحة كاملة (Navigation)
+    @FXML
+    public void goToAIChat(ActionEvent event) {
+        navigate(event, "/com/smarttask/smarttaskmanager/view/chatbot.fxml", "AI Chat Assistant");
+    }
+
+    // ✅ فتح الشات بوت كنافذة منبثقة (Popup)
+    @FXML
+    public void handleOpenAIChat(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/chatbot.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("AI Assistant");
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // =========================================================
+    // 📊 DYNAMIC CHARTS
+    // =========================================================
 
     private void loadPerformanceTrends() {
         if (productivityChart == null) return;
@@ -109,7 +126,6 @@ public class DashboardController {
             }
         } catch (Exception e) { e.printStackTrace(); }
 
-        // 🔥 Astuce: إلا مكانتش داتا حقيقية، ديري داتا ديال الديمو
         if (!hasData) {
             series.getData().add(new XYChart.Data<>(java.time.LocalDate.now().minusDays(3).toString(), 2));
             series.getData().add(new XYChart.Data<>(java.time.LocalDate.now().minusDays(2).toString(), 5));
@@ -119,15 +135,11 @@ public class DashboardController {
 
         productivityChart.getData().add(series);
 
-        // 🔥 Astuce 2: Interactive Tooltips (باش تبان ناضية)
         Platform.runLater(() -> {
             for (XYChart.Data<String, Number> data : series.getData()) {
                 if (data.getNode() != null) {
                     Tooltip tooltip = new Tooltip(data.getYValue() + " Tasks");
-                    tooltip.setStyle("-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-font-size: 12px;");
                     Tooltip.install(data.getNode(), tooltip);
-
-                    // تأثير الضوء عند التمرير
                     data.getNode().setOnMouseEntered(e -> data.getNode().setStyle("-fx-bar-fill: #8E2DE2; -fx-cursor: hand;"));
                     data.getNode().setOnMouseExited(e -> data.getNode().setStyle("-fx-bar-fill: #f39c12;"));
                 }
@@ -156,11 +168,9 @@ public class DashboardController {
             }
         } catch (Exception e) { e.printStackTrace(); }
 
-        // 🔥 Demo Data Safety Net
         if (!hasData) {
-            series.getData().add(new XYChart.Data<>("Development", 120));
-            series.getData().add(new XYChart.Data<>("Design", 90));
-            series.getData().add(new XYChart.Data<>("Meetings", 45));
+            series.getData().add(new XYChart.Data<>("Work", 120));
+            series.getData().add(new XYChart.Data<>("Personal", 90));
         }
         timeSpentChart.getData().add(series);
     }
@@ -168,9 +178,9 @@ public class DashboardController {
     private void loadPieChartData() {
         if(pieChartPriority == null) return;
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
-             Statement stmt = connect.createStatement()) {
-            String sql = "SELECT priority, COUNT(*) as count FROM tasks WHERE user_email = '" + UserSession.getInstance().getEmail() + "' GROUP BY priority";
-            ResultSet rs = stmt.executeQuery(sql);
+             PreparedStatement pst = connect.prepareStatement("SELECT priority, COUNT(*) as count FROM tasks WHERE user_email = ? GROUP BY priority")) {
+            pst.setString(1, UserSession.getInstance().getEmail());
+            ResultSet rs = pst.executeQuery();
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
             while (rs.next()) pieData.add(new PieChart.Data(rs.getString("priority"), rs.getInt("count")));
 
@@ -183,8 +193,10 @@ public class DashboardController {
         String[] colors = {"#a18cd1", "#8fd3f4", "#fbc2eb", "#ff9a9e"};
         int i = 0;
         for (PieChart.Data data : pieChartPriority.getData()) {
-            data.getNode().setStyle("-fx-pie-color: " + colors[i % colors.length] + ";");
-            i++;
+            if (data.getNode() != null) {
+                data.getNode().setStyle("-fx-pie-color: " + colors[i % colors.length] + ";");
+                i++;
+            }
         }
     }
 
@@ -192,7 +204,6 @@ public class DashboardController {
         if (UserSession.getInstance() == null) return;
         String email = UserSession.getInstance().getEmail();
         try (Connection connect = DatabaseConnection.getInstance().getConnection()) {
-            // KPIs Queries...
             PreparedStatement ps1 = connect.prepareStatement("SELECT COUNT(*) FROM tasks WHERE status = 'In Progress' AND user_email = ?");
             ps1.setString(1, email);
             ResultSet rs1 = ps1.executeQuery();
@@ -210,20 +221,16 @@ public class DashboardController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- Services & Utils ---
-    private void startNotificationService() {
-        try {
-            notifService = new NotificationService(this);
-            notifService.startService();
-        } catch (Exception e) { e.printStackTrace(); }
-    }
+    // =========================================================
+    // 🛠️ SERVICES & NAVIGATION
+    // =========================================================
 
     public void addNotificationToQueue(int taskId, String type, String message, boolean isUrgent) {
         Platform.runLater(() -> {
             if (aiSuggestionLabel != null) {
                 aiSuggestionLabel.setText("🔔 " + message);
                 String bgColor = isUrgent ? "#e74c3c" : "#3498db";
-                aiSuggestionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: " + bgColor + "; -fx-padding: 5px; -fx-background-radius: 5;");
+                aiSuggestionLabel.setStyle("-fx-text-fill: white; -fx-background-color: " + bgColor + "; -fx-padding: 5px; -fx-background-radius: 5;");
             }
             if ("INVITE".equals(type)) showInvitationDialog(taskId, message);
         });
@@ -232,7 +239,6 @@ public class DashboardController {
     private void showInvitationDialog(int taskId, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Shared Task Invitation");
-        alert.setHeaderText(null);
         alert.setContentText(message + "\n\nDo you accept?");
         ButtonType btnAccept = new ButtonType("Accept");
         ButtonType btnDecline = new ButtonType("Decline");
@@ -254,21 +260,13 @@ public class DashboardController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    @FXML
-    public void handleExportPDF() {
+    @FXML public void handleExportPDF() {
         try {
             List<Task> tasks = taskDAO.getAllTasks();
-            if (tasks.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Warning", "No tasks to export!");
-                return;
-            }
             String path = System.getProperty("user.home") + "/Desktop/SmartManager_Report.pdf";
             new PDFExportService().exportTasksToPDF(tasks, path);
             showAlert(Alert.AlertType.INFORMATION, "Success", "PDF Exported to Desktop!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Export Failed.");
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void loadAIInsights() {
@@ -279,24 +277,14 @@ public class DashboardController {
                 Platform.runLater(() -> {
                     if (aiSuggestionLabel != null && !aiSuggestionLabel.getText().startsWith("🔔")) {
                         aiSuggestionLabel.setText("✨ AI: " + insight);
-                        aiSuggestionLabel.setStyle("-fx-text-fill: #512da8; -fx-font-weight: bold; -fx-font-size: 14px;");
+                        aiSuggestionLabel.setStyle("-fx-text-fill: #512da8; -fx-font-weight: bold;");
                     }
                 });
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
     }
 
-    // --- Navigation ---
-
-    @FXML
-    public void goToDashboard(ActionEvent event) {
-        updateDashboardKPIs();
-        loadPerformanceTrends();
-        loadTimeSpentChart();
-        loadPieChartData();
-        System.out.println("Dashboard refreshed!");
-    }
-
+    @FXML public void goToDashboard(ActionEvent event) { refreshAllData(); }
     @FXML public void goToCalendar(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/calendar_view.fxml", "Calendar"); }
     @FXML public void goToTasks(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/tasks.fxml", "My Tasks"); }
     @FXML public void goToProfile(ActionEvent event) { navigate(event, "/com/smarttask/smarttaskmanager/view/profile.fxml", "Profile"); }
@@ -306,6 +294,7 @@ public class DashboardController {
         UserSession.getInstance().cleanUserSession();
         navigate(event, "/com/smarttask/smarttaskmanager/view/login.fxml", "Login");
     }
+
     @FXML public void handleNewTask(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/smarttask/smarttaskmanager/view/add_task.fxml"));
@@ -313,30 +302,39 @@ public class DashboardController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private void checkNotifications() {
-        if(UserSession.getInstance() == null) return;
-        String currentUser = UserSession.getInstance().getEmail();
-        String sql = "SELECT COUNT(*) FROM tasks WHERE shared_with = ? AND status != 'Completed'";
-        try (Connection connect = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement prepare = connect.prepareStatement(sql)) {
-            prepare.setString(1, currentUser);
-            ResultSet rs = prepare.executeQuery();
-            if (rs.next() && rs.getInt(1) > 0 && btnMyTasks != null) {
-                btnMyTasks.setText("My Tasks (" + rs.getInt(1) + ")");
-                btnMyTasks.setStyle("-fx-background-color: #ff9a9e; -fx-text-fill: white; -fx-font-weight: bold;");
-            }
-        } catch (Exception e) { e.printStackTrace(); }
+    private void addHoverAnimation(Node node) {
+        if (node == null) return;
+        node.setOnMouseEntered(e -> { node.setScaleX(1.03); node.setScaleY(1.03); node.setStyle("-fx-cursor: hand;"); });
+        node.setOnMouseExited(e -> { node.setScaleX(1.0); node.setScaleY(1.0); });
     }
 
     private void navigate(ActionEvent event, String fxmlPath, String title) {
         try {
-            if (notifService != null) notifService.stopService();
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setTitle(title);
             stage.setScene(new Scene(root));
             stage.show();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void startNotificationService() {
+        try { notifService = new NotificationService(this); notifService.startService(); }
+        catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void checkNotifications() {
+        if(UserSession.getInstance() == null) return;
+        String sql = "SELECT COUNT(*) FROM tasks WHERE shared_with = ? AND status != 'Completed'";
+        try (Connection connect = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement prepare = connect.prepareStatement(sql)) {
+            prepare.setString(1, UserSession.getInstance().getEmail());
+            ResultSet rs = prepare.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0 && btnMyTasks != null) {
+                btnMyTasks.setText("My Tasks (" + rs.getInt(1) + ")");
+                btnMyTasks.setStyle("-fx-background-color: #ff9a9e; -fx-text-fill: white;");
+            }
         } catch (Exception e) { e.printStackTrace(); }
     }
 

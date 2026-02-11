@@ -36,7 +36,6 @@
             <Separator opacity="0.4" style="-fx-background-color: white;" />
 
             <VBox spacing="12.0" VBox.vgrow="ALWAYS">
-
                 <Button maxWidth="Infinity" onAction="#goToDashboard" text="Dashboard"
                         style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 15; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.3); -fx-border-radius: 15;">
                     <effect><DropShadow color="rgba(0,0,0,0.1)" radius="5"/></effect>
@@ -46,6 +45,9 @@
                         style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-cursor: hand;"/>
 
                 <Button maxWidth="Infinity" onAction="#goToCalendar" text="Calendar"
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-cursor: hand;"/>
+
+                <Button fx:id="btnAIChat" maxWidth="Infinity" onAction="#goToAIChat" text="AI Chatbot"
                         style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; -fx-padding: 12 20; -fx-cursor: hand;"/>
 
                 <Button maxWidth="Infinity" onAction="#goToProfile" text="Profile"
@@ -61,7 +63,6 @@
 
     <center>
         <VBox spacing="30.0" style="-fx-padding: 40 50;">
-
             <HBox alignment="CENTER_LEFT" spacing="20.0">
                 <VBox>
                     <Label text="Hello!" textFill="#2d3436">
@@ -119,7 +120,6 @@
                     </BarChart>
                 </VBox>
             </HBox>
-
         </VBox>
     </center>
 </BorderPane>
