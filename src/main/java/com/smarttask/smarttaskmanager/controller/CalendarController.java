@@ -138,7 +138,7 @@ public class CalendarController {
 
     private void loadSideTasks() {
         taskListContainer.getChildren().clear();
-        String sql = "SELECT * FROM tasks WHERE user_email = ? OR shared_with = ?";
+        String sql = "SELECT * FROM tasks WHERE (user_email = ? OR shared_with = ?) AND deadline IS NULL";
 
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
              PreparedStatement prepare = connect.prepareStatement(sql)) {
@@ -148,8 +148,21 @@ public class CalendarController {
 
             ResultSet rs = prepare.executeQuery();
             while (rs.next()) {
-                // ✅ FIX 1: Zedt 'null' f l-kher (9 arguments)
-                Task t = new Task(rs.getInt("id"), rs.getString("title"), null, rs.getString("priority"), null, null, null, null, null);
+                // ✅ التصحيح: تمرير 12 باراميتر كاملة
+                Task t = new Task(
+                        rs.getInt("id"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getString("priority"),
+                        rs.getString("status"),
+                        null,
+                        rs.getString("category"),
+                        rs.getString("shared_with"),
+                        rs.getString("recurrence_type"),
+                        rs.getObject("parent_id") != null ? rs.getInt("parent_id") : null,
+                        rs.getLong("time_spent"),      // 11
+                        rs.getTimestamp("timer_start") // 12
+                );
 
                 Label l = createTaskLabel(t);
                 l.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 5; -fx-background-radius: 3; -fx-cursor: hand; -fx-margin: 2;");
@@ -168,7 +181,7 @@ public class CalendarController {
             prepare.setString(3, UserSession.getInstance().getEmail());
             ResultSet rs = prepare.executeQuery();
             while (rs.next()) {
-                // ✅ FIX 2: Zedt retrieval dyal recurrence_type
+                // ✅ التصحيح: تمرير 12 باراميتر كاملة
                 tasks.add(new Task(
                         rs.getInt("id"),
                         rs.getString("title"),
@@ -178,7 +191,10 @@ public class CalendarController {
                         rs.getDate("deadline").toLocalDate(),
                         rs.getString("category"),
                         rs.getString("shared_with"),
-                        rs.getString("recurrence_type") // 👈 HADI
+                        rs.getString("recurrence_type"),
+                        rs.getObject("parent_id") != null ? rs.getInt("parent_id") : null,
+                        rs.getLong("time_spent"),      // 11
+                        rs.getTimestamp("timer_start") // 12
                 ));
             }
         } catch (Exception e) { e.printStackTrace(); }

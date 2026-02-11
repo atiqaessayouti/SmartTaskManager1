@@ -1,8 +1,10 @@
 package com.smarttask.smarttaskmanager.model;
 
 import java.time.LocalDate;
+import java.sql.Timestamp; // ✅ ضروري
 
 public class Task {
+    // ... الحقول القديمة ...
     private int id;
     private String title;
     private String description;
@@ -11,10 +13,18 @@ public class Task {
     private LocalDate deadline;
     private String category;
     private String sharedWith;
-    private String recurrenceType; // ✅ المتغير الجديد
+    private String recurrenceType;
+    private Integer parentId;
 
-    // ✅ Constructor الكامل (9 د الباراميترات - تأكدي أن هادشي مكتوب عندك)
-    public Task(int id, String title, String description, String priority, String status, LocalDate deadline, String category, String sharedWith, String recurrenceType) {
+    // ✅ الحقول الجديدة
+    private long timeSpent;       // الوقت الإجمالي بالثواني
+    private Timestamp timerStart; // وقت بداية العداد
+
+    // ✅ Constructor الجديد (12 باراميتر)
+    public Task(int id, String title, String description, String priority, String status,
+                LocalDate deadline, String category, String sharedWith,
+                String recurrenceType, Integer parentId,
+                long timeSpent, Timestamp timerStart) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,20 +34,19 @@ public class Task {
         this.category = category;
         this.sharedWith = sharedWith;
         this.recurrenceType = recurrenceType;
+        this.parentId = parentId;
+        this.timeSpent = timeSpent;
+        this.timerStart = timerStart;
     }
 
-    // Constructor صغير (لإضافة تاسك جديدة)
-    public Task(String title, String description, String priority, LocalDate deadline, String recurrenceType) {
-        this.title = title;
-        this.description = description;
-        this.priority = priority;
-        this.deadline = deadline;
-        this.recurrenceType = recurrenceType;
-        this.status = "In Progress";
-        this.category = "General";
-    }
+    // ✅ Getters الجديدة
+    public long getTimeSpent() { return timeSpent; }
+    public Timestamp getTimerStart() { return timerStart; }
 
-    // --- Getters ---
+    // واش العداد خدام دابا؟
+    public boolean isTimerRunning() { return timerStart != null; }
+
+    // ... باقي الـ Getters القديمة (getId, getTitle...) خليها كما هي ...
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -47,11 +56,7 @@ public class Task {
     public String getCategory() { return category; }
     public String getSharedWith() { return sharedWith; }
     public String getRecurrenceType() { return recurrenceType; }
-
-    // --- Setters ---
-    public void setSharedWith(String sharedWith) { this.sharedWith = sharedWith; }
-    public void setStatus(String status) { this.status = status; }
-    public void setRecurrenceType(String recurrenceType) { this.recurrenceType = recurrenceType; }
+    public Integer getParentId() { return parentId; }
 
     @Override
     public String toString() { return title; }

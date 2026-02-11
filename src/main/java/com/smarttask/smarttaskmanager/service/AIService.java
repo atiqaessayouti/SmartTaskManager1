@@ -8,39 +8,39 @@ import java.util.regex.Pattern;
 
 public class AIService {
 
-    // ✅ CATEGORY DETECTION (بسيطة وفعالة جداً)
+    // ✅ CATEGORY DETECTION (English Keywords)
     public static String suggestCategory(String input) {
         if (input == null) return "General";
-        String text = input.toLowerCase(); // كنردو كلشي صغير باش نسهلو البحث
+        String text = input.toLowerCase();
 
         // 💼 WORK
-        if (containsAny(text, "work", "travail", "boulot", "projet", "réunion", "meeting", "client", "boss", "email", "code", "bug", "java", "sql", "rh", "management")) return "Work";
+        if (containsAny(text, "work", "job", "project", "meeting", "client", "boss", "email", "code", "bug", "java", "sql", "hr", "management", "report")) return "Work";
 
         // 🎓 EDUCATION
-        if (containsAny(text, "education", "étude", "cours", "exam", "test", "devoir", "projet", "pfe", "soutenance", "biblio", "livre", "revise", "school", "école")) return "Education";
+        if (containsAny(text, "education", "study", "course", "exam", "test", "assignment", "homework", "project", "research", "book", "read", "school", "university")) return "Education";
 
         // 🏥 HEALTH
-        if (containsAny(text, "health", "santé", "médecin", "docteur", "tbib", "rdv", "hopital", "sbitar", "sport", "gym", "traitement", "medicament", "dwa")) return "Health";
+        if (containsAny(text, "health", "doctor", "appointment", "hospital", "gym", "workout", "sport", "medication", "pill", "therapy", "dentist")) return "Health";
 
-        // 💰 FINANCE (هنا فين كاين internet و facture)
-        if (containsAny(text, "finance", "argent", "flous", "banque", "payer", "pay", "facture", "bill", "loyer", "salaire", "prix", "cost", "internet", "wifi", "abonnement")) return "Finance";
+        // 💰 FINANCE
+        if (containsAny(text, "finance", "money", "bank", "pay", "bill", "invoice", "rent", "salary", "cost", "price", "internet", "subscription", "wifi")) return "Finance";
 
         // 🏠 PERSONAL
-        if (containsAny(text, "personal", "famille", "maison", "dar", "courses", "shopping", "voyage", "ami", "anniversaire", "fête", "clean", "ménage")) return "Personal";
+        if (containsAny(text, "personal", "family", "home", "house", "grocery", "shopping", "travel", "trip", "friend", "birthday", "party", "clean", "laundry")) return "Personal";
 
         return "General";
     }
 
-    // ✅ TITLE CLEANING (مسح الكلمات الزايدة)
+    // ✅ TITLE CLEANING (Removes time/urgency words from the title)
     public static String extractCleanTitle(String input) {
         if (input == null || input.isEmpty()) return "New Task";
         String clean = input;
         String[] keywords = {
-                "demain", "tomorrow", "ghda", "aujourd'hui", "today", "lyoum",
-                "chaque jour", "every day", "chaque semaine", "weekly",
-                "chaque mois", "monthly", "mensuel", // ✅ كتمسح
-                "chaque année", "yearly",
-                "urgent", "important", "darouri", "vite", "asap"
+                "tomorrow", "tmrw", "today", "tonight",
+                "every day", "daily", "every week", "weekly",
+                "every month", "monthly",
+                "every year", "yearly",
+                "urgent", "important", "asap", "fast", "critical"
         };
         for (String word : keywords) {
             clean = clean.replaceAll("(?i)\\b" + word + "\\b", "");
@@ -48,49 +48,83 @@ public class AIService {
         return clean.trim().replaceAll(" +", " ");
     }
 
-    // ✅ RECURRENCE (MAJUSCULE)
+    // ✅ RECURRENCE DETECTION
     public static String suggestRecurrence(String input) {
         if (input == null) return "NONE";
         String text = input.toLowerCase();
-        if (containsAny(text, "chaque jour", "daily", "quotidien", "every day")) return "DAILY";
-        if (containsAny(text, "chaque semaine", "weekly", "hebdomadaire", "every week")) return "WEEKLY";
-        if (containsAny(text, "chaque mois", "monthly", "mensuel", "every month")) return "MONTHLY"; // ✅ هنا كاين "chaque mois"
-        if (containsAny(text, "chaque année", "yearly", "annuel", "every year")) return "YEARLY";
+        if (containsAny(text, "every day", "daily", "each day")) return "DAILY";
+        if (containsAny(text, "every week", "weekly", "each week")) return "WEEKLY";
+        if (containsAny(text, "every month", "monthly", "each month")) return "MONTHLY";
+        if (containsAny(text, "every year", "yearly", "annually")) return "YEARLY";
         return "NONE";
     }
 
-    // ✅ PRIORITY
+    // ✅ PRIORITY DETECTION
     public static String suggestPriority(String input) {
         if (input == null) return "Medium";
         String text = input.toLowerCase();
-        if (containsAny(text, "urgent", "important", "darouri", "exam", "dead", "vite")) return "High";
-        if (containsAny(text, "loisir", "film", "café", "fun", "game")) return "Low";
+        if (containsAny(text, "urgent", "important", "critical", "asap", "deadline", "fast")) return "High";
+        if (containsAny(text, "leisure", "movie", "coffee", "fun", "game", "maybe")) return "Low";
         return "Medium";
     }
 
-    // ✅ DATE PARSING
+    // ✅ DATE PARSING (NLP Logic)
     public static LocalDate parseDate(String input) {
         if (input == null || input.isEmpty()) return null;
         String text = input.toLowerCase();
-        if (containsAny(text, "aujourd'hui", "lyoum", "today")) return LocalDate.now();
-        if (containsAny(text, "demain", "ghda", "tomorrow")) return LocalDate.now().plusDays(1);
-        if (containsAny(text, "après-demain", "after tomorrow")) return LocalDate.now().plusDays(2);
 
-        Pattern pattern = Pattern.compile("(dans|in) (\\d+) (jours|days)");
+        if (containsAny(text, "today", "tonight")) return LocalDate.now();
+        if (containsAny(text, "tomorrow", "tmrw")) return LocalDate.now().plusDays(1);
+        if (containsAny(text, "after tomorrow", "day after tomorrow")) return LocalDate.now().plusDays(2);
+        if (containsAny(text, "next week")) return LocalDate.now().plusWeeks(1);
+
+        // Regex for "in X days"
+        Pattern pattern = Pattern.compile("(in) (\\d+) (days|day)");
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) return LocalDate.now().plusDays(Integer.parseInt(matcher.group(2)));
 
         return null;
     }
 
-    // 🛠 Helper Method (السر ديال النجاح)
+    // 🛠 Helper Method
     private static boolean containsAny(String text, String... keywords) {
         for (String keyword : keywords) {
-            if (text.contains(keyword)) return true; // ✅ contains كتقرا كلشي، واخا يكونو سطور
+            if (text.contains(keyword)) return true;
         }
         return false;
     }
 
-    // Helper for insights (Optional)
-    public static String getProductivityInsights(List<Task> tasks) { return "Keep going!"; }
+    // 🔥🔥 SMART DASHBOARD INSIGHTS (English Messages)
+    public static String getProductivityInsights(List<Task> tasks) {
+        if (tasks == null || tasks.isEmpty()) return "🚀 Start by adding a new task!";
+
+        // 1. Count Overdue Tasks
+        long overdueCount = tasks.stream()
+                .filter(t -> t.getDeadline() != null && t.getDeadline().isBefore(LocalDate.now()) && !"Completed".equals(t.getStatus()))
+                .count();
+
+        // 2. Count High Priority Tasks
+        long highPriorityCount = tasks.stream()
+                .filter(t -> "High".equalsIgnoreCase(t.getPriority()) && !"Completed".equals(t.getStatus()))
+                .count();
+
+        // 3. Analyze and return insight
+        if (overdueCount > 0) {
+            return "⚠️ Warning! You have " + overdueCount + " overdue task(s). Catch up now!";
+        }
+
+        if (highPriorityCount > 2) {
+            return "🔥 Focus Mode: You have " + highPriorityCount + " high-priority tasks pending.";
+        }
+
+        long completedToday = tasks.stream()
+                .filter(t -> "Completed".equals(t.getStatus()))
+                .count();
+
+        if (completedToday > 0) {
+            return "✅ Excellent work! You are making good progress today.";
+        }
+
+        return "💡 Tip: Start with the hardest task first ('Eat the Frog').";
+    }
 }

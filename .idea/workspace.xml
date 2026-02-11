@@ -5,22 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="383da4b2-4278-412e-aed8-ab19ab758d55" name="Changes" comment="add notification">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/WelcomeController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/images/logo.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/welcome.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/Launcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/Launcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/DAO/TaskDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/DAO/TaskDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/AddTaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/AddTaskController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/CalendarController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/CalendarController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/add_task.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/add_task.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/admin_dashboard.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/calendar_view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/calendar_view.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/dashboard.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/dashboard.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/forgot_password.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/forgot_password.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/login.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/login.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/profile.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/profile.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/register.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/register.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/task_details.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/task_details.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/tasks.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/tasks.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/TasksController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/TasksController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/model/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/model/Task.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/AIService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/AIService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/NotificationSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/NotificationSystem.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,5 +134,16 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="add notification" />
     <option name="LAST_COMMIT_MESSAGE" value="add notification" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/RegisterController.java</url>
+          <line>88</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

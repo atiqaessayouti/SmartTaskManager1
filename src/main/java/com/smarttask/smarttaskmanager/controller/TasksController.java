@@ -1,15 +1,15 @@
 package com.smarttask.smarttaskmanager.controller;
 
+import com.smarttask.smarttaskmanager.DAO.TaskDAO; // ✅ استيراد DAO
 import com.smarttask.smarttaskmanager.model.Task;
 import com.smarttask.smarttaskmanager.service.RecurrenceService;
-import com.smarttask.smarttaskmanager.util.DatabaseConnection;
 import com.smarttask.smarttaskmanager.util.UserSession;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene; // ✅ ها أنا ضفت ليك Scene باش يحيد الخطأ
-import javafx.scene.Node;  // ✅ ها أنا ضفت ليك Node باش يحيد الخطأ
+import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -19,7 +19,6 @@ import javafx.stage.Modality;
 import javafx.event.ActionEvent;
 
 import java.io.IOException;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +26,9 @@ public class TasksController {
 
     @FXML private FlowPane tasksContainer;
     @FXML private TextField searchField;
+
+    // ✅ نستخدم DAO للتعامل مع البيانات بدلاً من SQL المباشر
+    private TaskDAO taskDAO = new TaskDAO();
     private List<Task> allTasks = new ArrayList<>();
 
     @FXML
@@ -37,29 +39,9 @@ public class TasksController {
 
     private void loadTasks() {
         allTasks.clear();
-        String sql = "SELECT * FROM tasks WHERE user_email = ?";
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pst = conn.prepareStatement(sql)) {
-
-            pst.setString(1, UserSession.getInstance().getEmail());
-            ResultSet rs = pst.executeQuery();
-
-            while (rs.next()) {
-                // ✅ هنا فين كان عندك الأحمر: خاص يكونو 9 د الحوايج وبنفس الترتيب
-                allTasks.add(new Task(
-                        rs.getInt("id"),
-                        rs.getString("title"),
-                        rs.getString("description"),
-                        rs.getString("priority"),
-                        rs.getString("status"),
-                        (rs.getDate("deadline") != null) ? rs.getDate("deadline").toLocalDate() : null,
-                        rs.getString("category"),
-                        rs.getString("shared_with"),
-                        rs.getString("recurrence_type") // 9. Recurrence
-                ));
-            }
-            displayTasks("");
-        } catch (SQLException e) { e.printStackTrace(); }
+        // ✅ استخدام DAO لجلب المهام (يضمن قراءة الـ 12 باراميتر بشكل صحيح)
+        allTasks = taskDAO.getAllTasks();
+        displayTasks("");
     }
 
     private void displayTasks(String filter) {
@@ -73,8 +55,13 @@ public class TasksController {
 
     private VBox createTaskCard(Task task) {
         VBox card = new VBox(12);
-        card.setPrefSize(310, 240);
+        card.setPrefSize(310, 260); // زيادة الطول قليلاً لاستيعاب العداد
         card.setStyle("-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 6); -fx-padding: 20;");
+
+        // تمييز المهام الفرعية بخط أزرق
+        if (task.getParentId() != null) {
+            card.setStyle(card.getStyle() + "-fx-border-color: #3498db; -fx-border-width: 0 0 0 5;");
+        }
 
         Label title = new Label(task.getTitle());
         title.setStyle("-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #1a252f;");
@@ -83,6 +70,7 @@ public class TasksController {
         Label category = new Label(task.getCategory());
         category.setStyle("-fx-background-color: #ebedef; -fx-text-fill: #2c3e50; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 11px; -fx-font-weight: bold;");
 
+        // --- معلومات الأولوية والحالة ---
         HBox infoBox = new HBox(15);
         infoBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -99,6 +87,36 @@ public class TasksController {
         sLbl.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
 
         infoBox.getChildren().addAll(prioBox, sLbl);
+
+        // --- ⏱️ 5. إضافة زر العداد (Time Tracking) ---
+        HBox timerBox = new HBox(10);
+        timerBox.setAlignment(Pos.CENTER_LEFT);
+
+        Label lblTime = new Label(formatTime(task.getTimeSpent()));
+        lblTime.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 12px; -fx-font-family: 'Consolas', monospace;");
+
+        Button btnTimer = new Button();
+        if (task.isTimerRunning()) {
+            btnTimer.setText("⏸ Stop");
+            btnTimer.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 15; -fx-cursor: hand;");
+            lblTime.setText("Running...");
+            lblTime.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        } else {
+            btnTimer.setText("▶ Start");
+            btnTimer.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-background-radius: 15; -fx-cursor: hand;");
+        }
+
+        btnTimer.setOnAction(e -> {
+            if (task.isTimerRunning()) {
+                taskDAO.stopTimer(task.getId());
+            } else {
+                taskDAO.startTimer(task.getId());
+            }
+            loadTasks(); // تحديث الصفحة لتغيير حالة الزر
+        });
+
+        timerBox.getChildren().addAll(btnTimer, lblTime);
+        // ----------------------------------------------------
 
         HBox actions = new HBox(10);
         actions.setAlignment(Pos.BOTTOM_RIGHT);
@@ -117,8 +135,54 @@ public class TasksController {
         bDel.setOnAction(e -> deleteTask(task.getId()));
 
         actions.getChildren().addAll(bEdit, bDone, bDel);
-        card.getChildren().addAll(title, category, infoBox, actions);
+
+        // إضافة العداد للبطاقة
+        card.getChildren().addAll(title, category, infoBox, timerBox, actions);
         return card;
+    }
+
+    // دالة التحقق من المهام الفرعية (Blocking Logic)
+    private boolean hasIncompleteSubtasks(int parentId) {
+        for(Task t : allTasks) {
+            if(t.getParentId() != null && t.getParentId() == parentId && !"Completed".equals(t.getStatus())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void updateStatus(int id, String status) {
+        if ("Completed".equals(status)) {
+            if (hasIncompleteSubtasks(id)) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Action Bloquée 🚫");
+                alert.setHeaderText("Impossible de terminer !");
+                alert.setContentText("Cette tâche contient des sous-tâches non terminées.\nVeuillez terminer les sous-tâches d'abord.");
+                alert.show();
+                return;
+            }
+        }
+
+        // تحديث الحالة في قاعدة البيانات (يمكن إضافة دالة updateStatus في DAO مستقبلاً)
+        // حالياً نستخدم SQL مباشر للتحديث السريع للحالة
+        String sql = "UPDATE tasks SET status = ? WHERE id = ?";
+        try (java.sql.Connection conn = com.smarttask.smarttaskmanager.util.DatabaseConnection.getInstance().getConnection();
+             java.sql.PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, status);
+            pst.setInt(2, id);
+            pst.executeUpdate();
+
+            if ("Completed".equals(status)) {
+                Task t = allTasks.stream().filter(x -> x.getId() == id).findFirst().orElse(null);
+                if(t != null) RecurrenceService.checkAndCreateNextTask(t);
+            }
+            loadTasks();
+        } catch (java.sql.SQLException e) { e.printStackTrace(); }
+    }
+
+    private void deleteTask(int id) {
+        taskDAO.deleteTask(id);
+        loadTasks();
     }
 
     private void handleEditTask(Task task) {
@@ -150,34 +214,6 @@ public class TasksController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private void updateStatus(int id, String status) {
-        String sql = "UPDATE tasks SET status = ? WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setString(1, status);
-            pst.setInt(2, id);
-            pst.executeUpdate();
-
-            // Check Recurrence
-            if ("Completed".equals(status)) {
-                // Fetch full task details for recurrence check
-                Task t = allTasks.stream().filter(x -> x.getId() == id).findFirst().orElse(null);
-                if(t != null) RecurrenceService.checkAndCreateNextTask(t);
-            }
-            loadTasks();
-        } catch (SQLException e) { e.printStackTrace(); }
-    }
-
-    private void deleteTask(int id) {
-        String sql = "DELETE FROM tasks WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, id);
-            pst.executeUpdate();
-            loadTasks();
-        } catch (SQLException e) { e.printStackTrace(); }
-    }
-
     @FXML
     private void goToDashboard(ActionEvent event) {
         try {
@@ -185,5 +221,14 @@ public class TasksController {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.getScene().setRoot(root);
         } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // دالة تنسيق الوقت (ثواني -> ساعات:دقائق)
+    private String formatTime(long totalSeconds) {
+        if (totalSeconds == 0) return "0m";
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        if (hours > 0) return String.format("%dh %02dm", hours, minutes);
+        return String.format("%dm", minutes);
     }
 }
