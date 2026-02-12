@@ -12,56 +12,53 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane prefHeight="650.0" prefWidth="450.0"
+<StackPane prefHeight="700.0" prefWidth="1000.0"
            style="-fx-background-color: linear-gradient(to bottom, #fbc2eb 0%, #a6c1ee 100%);"
            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.smarttask.smarttaskmanager.controller.LoginController">
 
-    <VBox alignment="CENTER" maxWidth="350" spacing="20.0"
-          style="-fx-background-color: white; -fx-background-radius: 30; -fx-padding: 30;">
+    <VBox alignment="CENTER" maxWidth="400" spacing="25.0"
+          style="-fx-background-color: white; -fx-background-radius: 30; -fx-padding: 40;">
 
         <effect>
-            <DropShadow radius="20.0" offsetY="10.0" color="rgba(0,0,0,0.1)"/>
+            <DropShadow radius="25.0" offsetY="15.0" color="rgba(0,0,0,0.1)"/>
         </effect>
 
-        <ImageView fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+        <ImageView fitHeight="130.0" fitWidth="130.0" pickOnBounds="true" preserveRatio="true">
             <image>
                 <Image url="@../images/logo.png"/>
             </image>
         </ImageView>
 
-        <Label text="Smart Task Manager" textFill="#2d3436">
-            <font>
-                <Font name="Segoe UI Bold" size="24.0"/>
-            </font>
-        </Label>
-
-        <Label text="Welcome Back!" textFill="#b2bec3" style="-fx-padding: 0 0 10 0;">
-            <font>
-                <Font size="14.0"/>
-            </font>
-        </Label>
+        <VBox alignment="CENTER" spacing="5">
+            <Label text="Smart Task Manager" textFill="#2d3436">
+                <font><Font name="Segoe UI Bold" size="26.0"/></font>
+            </Label>
+            <Label text="Welcome Back!" textFill="#b2bec3">
+                <font><Font size="15.0"/></font>
+            </Label>
+        </VBox>
 
         <VBox spacing="15">
             <TextField fx:id="emailField" promptText="Email Address"
-                       style="-fx-background-color: white; -fx-border-color: #dfe6e9; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 12; -fx-font-size: 14px; -fx-text-fill: #2d3436;"/>
+                       style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-border-radius: 25; -fx-background-radius: 25; -fx-padding: 12 20; -fx-font-size: 14px; -fx-text-fill: #2d3436;"/>
 
             <PasswordField fx:id="passwordField" promptText="Password"
-                           style="-fx-background-color: white; -fx-border-color: #dfe6e9; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 12; -fx-font-size: 14px; -fx-text-fill: #2d3436;"/>
+                           style="-fx-background-color: #f8f9fa; -fx-border-color: #dfe6e9; -fx-border-radius: 25; -fx-background-radius: 25; -fx-padding: 12 20; -fx-font-size: 14px; -fx-text-fill: #2d3436;"/>
         </VBox>
 
         <Hyperlink text="Forgot Password?" onAction="#handleForgotPassword" alignment="CENTER_RIGHT" maxWidth="Infinity"
-                   style="-fx-text-fill: #636e72; -fx-font-size: 12px; -fx-border-color: transparent;"/>
+                   style="-fx-text-fill: #a6c1ee; -fx-font-size: 12px; -fx-border-color: transparent; -fx-font-weight: bold;"/>
 
         <Button text="LOG IN" onAction="#handleLogin" defaultButton="true" maxWidth="Infinity"
-                style="-fx-background-color: linear-gradient(to right, #fbc2eb, #a6c1ee); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 30; -fx-cursor: hand; -fx-padding: 12; -fx-font-size: 14px;">
+                style="-fx-background-color: linear-gradient(to right, #fbc2eb, #a6c1ee); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 30; -fx-cursor: hand; -fx-padding: 14; -fx-font-size: 14px;">
             <effect>
-                <DropShadow radius="10.0" color="rgba(166, 193, 238, 0.5)" offsetY="5"/>
+                <DropShadow radius="12.0" color="rgba(166, 193, 238, 0.4)" offsetY="5"/>
             </effect>
         </Button>
 
         <Hyperlink text="Don't have an account? Sign up" onAction="#handleGoToRegister"
-                   style="-fx-text-fill: #2d3436; -fx-font-size: 13px; -fx-border-color: transparent; -fx-font-weight: bold;"/>
+                   style="-fx-text-fill: #a6c1ee; -fx-font-size: 13px; -fx-border-color: transparent; -fx-font-weight: bold;"/>
 
     </VBox>
 

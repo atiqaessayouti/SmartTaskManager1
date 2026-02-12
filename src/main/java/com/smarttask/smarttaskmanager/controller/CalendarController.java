@@ -16,6 +16,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.web.WebEngine; // ✅ Import Zidnah
+import javafx.scene.web.WebView;   // ✅ Import Zidnah
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -33,19 +35,40 @@ public class CalendarController {
     @FXML private GridPane calendarGrid;
     @FXML private VBox taskListContainer;
 
+    // ✅ 1. تعريف المتغير الجديد الخاص بـ Google
+    @FXML private WebView calendarWebView;
+
     private YearMonth currentYearMonth;
     private Task draggedTask = null;
 
     @FXML
     public void initialize() {
+        // Init Local Calendar
         currentYearMonth = YearMonth.now();
         drawCalendar();
         loadSideTasks();
+
+        // ✅ 2. تشغيل Google Calendar
+        loadGoogleCalendar();
+    }
+
+    // ✅ 3. الدالة اللي كتجيب Google Calendar
+    private void loadGoogleCalendar() {
+        if (calendarWebView != null) {
+            WebEngine engine = calendarWebView.getEngine();
+            // رابط العطل المغربية
+            String url = "https://calendar.google.com/calendar/embed?src=en.moroccan%23holiday%40group.v.calendar.google.com&ctz=Africa%2FCasablanca";
+            engine.load(url);
+        }
     }
 
     private void drawCalendar() {
+        if(calendarGrid == null) return; // Protection
         calendarGrid.getChildren().clear();
-        yearMonthLabel.setText(currentYearMonth.getMonth().name() + " " + currentYearMonth.getYear());
+
+        // ... (الكود ديالك القديم كما هو) ...
+        if(yearMonthLabel != null)
+            yearMonthLabel.setText(currentYearMonth.getMonth().name() + " " + currentYearMonth.getYear());
 
         LocalDate firstDayOfMonth = currentYearMonth.atDay(1);
         int dayOfWeek = firstDayOfMonth.getDayOfWeek().getValue();
@@ -88,6 +111,7 @@ public class CalendarController {
     }
 
     private Label createTaskLabel(Task task) {
+        // ... (نفس الكود ديالك) ...
         Label lbl = new Label(task.getTitle());
         lbl.setMaxWidth(Double.MAX_VALUE);
         String color = "High".equals(task.getPriority()) ? "#e74c3c" : "#3498db";
@@ -110,6 +134,7 @@ public class CalendarController {
     }
 
     private void setupDropZone(VBox dayBox, LocalDate targetDate) {
+        // ... (نفس الكود ديالك) ...
         dayBox.setOnDragOver(event -> {
             if (event.getGestureSource() != dayBox && event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
@@ -137,6 +162,7 @@ public class CalendarController {
     }
 
     private void loadSideTasks() {
+        if(taskListContainer == null) return;
         taskListContainer.getChildren().clear();
         String sql = "SELECT * FROM tasks WHERE (user_email = ? OR shared_with = ?) AND deadline IS NULL";
 
@@ -148,7 +174,6 @@ public class CalendarController {
 
             ResultSet rs = prepare.executeQuery();
             while (rs.next()) {
-                //
                 Task t = new Task(
                         rs.getInt("id"),
                         rs.getString("title"),
@@ -160,8 +185,8 @@ public class CalendarController {
                         rs.getString("shared_with"),
                         rs.getString("recurrence_type"),
                         rs.getObject("parent_id") != null ? rs.getInt("parent_id") : null,
-                        rs.getLong("time_spent"),      // 11
-                        rs.getTimestamp("timer_start") // 12
+                        rs.getLong("time_spent"),
+                        rs.getTimestamp("timer_start")
                 );
 
                 Label l = createTaskLabel(t);
@@ -172,6 +197,7 @@ public class CalendarController {
     }
 
     private List<Task> getTasksForDate(LocalDate date) {
+        // ... (نفس الكود ديالك) ...
         List<Task> tasks = new ArrayList<>();
         String sql = "SELECT * FROM tasks WHERE deadline = ? AND (user_email = ? OR shared_with = ?)";
         try (Connection connect = DatabaseConnection.getInstance().getConnection();
@@ -181,7 +207,6 @@ public class CalendarController {
             prepare.setString(3, UserSession.getInstance().getEmail());
             ResultSet rs = prepare.executeQuery();
             while (rs.next()) {
-                // ✅
                 tasks.add(new Task(
                         rs.getInt("id"),
                         rs.getString("title"),
@@ -193,13 +218,15 @@ public class CalendarController {
                         rs.getString("shared_with"),
                         rs.getString("recurrence_type"),
                         rs.getObject("parent_id") != null ? rs.getInt("parent_id") : null,
-                        rs.getLong("time_spent"),      // 11
-                        rs.getTimestamp("timer_start") // 12
+                        rs.getLong("time_spent"),
+                        rs.getTimestamp("timer_start")
                 ));
             }
         } catch (Exception e) { e.printStackTrace(); }
         return tasks;
     }
+
+    // ... (باقي الدوال updateTaskDate, openTaskDetails, Navigation... نفسهم) ...
 
     private void updateTaskDate(int id, LocalDate date) {
         String sql = "UPDATE tasks SET deadline = ? WHERE id = ?";

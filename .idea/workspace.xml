@@ -5,12 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="383da4b2-4278-412e-aed8-ab19ab758d55" name="Changes" comment="add notification">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/ChatbotController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/chatbot.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/AIService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/service/AIService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/dashboard.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/dashboard.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/CalendarController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/CalendarController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/ChatbotController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/smarttask/smarttaskmanager/controller/ChatbotController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/calendar_view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/calendar_view.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/chatbot.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/chatbot.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/login.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/login.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/register.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/register.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/welcome.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/smarttask/smarttaskmanager/view/welcome.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,43 +54,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.App.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SmartTaskManager [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SmartTaskManager [install].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Artifacts&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.App.executor": "Run",
+    "Maven.SmartTaskManager [clean].executor": "Run",
+    "Maven.SmartTaskManager [install].executor": "Run",
+    "Maven.SmartTaskManager [package].executor": "Run",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "project.structure.last.edited": "Artifacts",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Octinz\IdeaProjects\SmartTaskManager12\src\main\resources\com\smarttask\smarttaskmanager\images" />
       <recent name="C:\Users\Octinz\IdeaProjects\SmartTaskManager12\src\main\resources\com\smarttask\smarttaskmanager" />
       <recent name="C:\Users\Octinz\IdeaProjects\SmartTaskManager12\src\main\resources" />
     </key>
-  </component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>

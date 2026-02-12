@@ -4,6 +4,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -13,20 +15,19 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.web.WebView?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.smarttask.smarttaskmanager.controller.CalendarController"
-            style="-fx-background-color: #f8f9fa;">
+<BorderPane style="-fx-background-color: #f8f9fa;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smarttask.smarttaskmanager.controller.CalendarController">
 
     <left>
-        <VBox spacing="10.0" prefWidth="220.0" style="-fx-background-color: linear-gradient(to bottom right, #4A00E0, #8E2DE2); -fx-padding: 20; -fx-background-radius: 0 30 30 0;">
+        <VBox prefWidth="220.0" spacing="10.0" style="-fx-background-color: linear-gradient(to bottom right, #4A00E0, #8E2DE2); -fx-padding: 20; -fx-background-radius: 0 30 30 0;">
             <effect>
                 <DropShadow color="rgba(0,0,0,0.25)" radius="15" width="20" />
             </effect>
 
             <Label text="SmartManager" textFill="WHITE">
-                <font><Font name="System Bold" size="18.0"/></font>
-                <effect><DropShadow color="rgba(0,0,0,0.3)" radius="2" offsetY="1"/></effect>
+                <font><Font name="System Bold" size="18.0" /></font>
+                <effect><DropShadow color="rgba(0,0,0,0.3)" offsetY="1" radius="2" /></effect>
             </Label>
 
             <Separator opacity="0.3" style="-fx-background-color: white;" />
@@ -35,7 +36,7 @@
                 <Button maxWidth="Infinity" onAction="#goToDashboard" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 10;" text="Dashboard" />
                 <Button maxWidth="Infinity" onAction="#goToTasks" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 10;" text="My Tasks" />
 
-                <Button maxWidth="Infinity" onAction="#goToCalendar" style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 10;" text="Calendar" />
+                <Button maxWidth="Infinity" style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 10;" text="Calendar" />
 
                 <Button maxWidth="Infinity" onAction="#goToProfile" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 10;" text="Profile" />
             </VBox>
@@ -46,71 +47,53 @@
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: white; -fx-padding: 10 20; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 2 0;">
-            <effect><DropShadow color="rgba(0,0,0,0.05)" radius="5" offsetY="2"/></effect>
-
-            <Label fx:id="yearMonthLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Calendrier" textFill="#2d3436" />
+            <Label fx:id="yearMonthLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Calendrier" />
 
             <AnchorPane HBox.hgrow="ALWAYS" />
 
-            <Button onAction="#previousMonth" style="-fx-background-color: white; -fx-border-color: #4A00E0; -fx-text-fill: #4A00E0; -fx-background-radius: 15; -fx-border-radius: 15; -fx-cursor: hand; -fx-font-weight: bold; -fx-padding: 4 10;" text="&lt;" />
-            <Button onAction="#nextMonth" style="-fx-background-color: white; -fx-border-color: #4A00E0; -fx-text-fill: #4A00E0; -fx-background-radius: 15; -fx-border-radius: 15; -fx-cursor: hand; -fx-font-weight: bold; -fx-padding: 4 10;" text="&gt;" />
+            <Button onAction="#previousMonth" style="-fx-background-color: white; -fx-border-color: #4A00E0; -fx-text-fill: #4A00E0; -fx-font-weight: bold; -fx-cursor: hand;" text="&lt;" />
+            <Button onAction="#nextMonth" style="-fx-background-color: white; -fx-border-color: #4A00E0; -fx-text-fill: #4A00E0; -fx-font-weight: bold; -fx-cursor: hand;" text="&gt;" />
         </HBox>
     </top>
 
     <center>
-        <VBox style="-fx-padding: 15;">
-            <GridPane style="-fx-background-color: white; -fx-padding: 5; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);">
-                <columnConstraints>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" halignment="CENTER"/>
-                </columnConstraints>
-                <rowConstraints>
-                    <RowConstraints minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                </rowConstraints>
-                <children>
-                    <Label text="Lundi" textFill="#636e72" style="-fx-font-weight: bold; -fx-font-size: 11px;" GridPane.columnIndex="0"/>
-                    <Label text="Mardi" textFill="#636e72" style="-fx-font-weight: bold; -fx-font-size: 11px;" GridPane.columnIndex="1"/>
-                    <Label text="Mercredi" textFill="#636e72" style="-fx-font-weight: bold; -fx-font-size: 11px;" GridPane.columnIndex="2"/>
-                    <Label text="Jeudi" textFill="#636e72" style="-fx-font-weight: bold; -fx-font-size: 11px;" GridPane.columnIndex="3"/>
-                    <Label text="Vendredi" textFill="#636e72" style="-fx-font-weight: bold; -fx-font-size: 11px;" GridPane.columnIndex="4"/>
-                    <Label text="Samedi" style="-fx-font-weight: bold; -fx-text-fill: #e74c3c; -fx-font-size: 11px;" GridPane.columnIndex="5"/>
-                    <Label text="Dimanche" style="-fx-font-weight: bold; -fx-text-fill: #e74c3c; -fx-font-size: 11px;" GridPane.columnIndex="6"/>
-                </children>
-            </GridPane>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
 
-            <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 5 0 0 0;">
-                <GridPane fx:id="calendarGrid" gridLinesVisible="true" style="-fx-background-color: white; -fx-border-color: #ecf0f1;">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                        <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints vgrow="ALWAYS" minHeight="60.0" />
-                    </rowConstraints>
-                </GridPane>
-            </ScrollPane>
-        </VBox>
+            <Tab text="📅 Mon Planning (Local)">
+                <VBox style="-fx-padding: 15;">
+                    <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                        <GridPane fx:id="calendarGrid" gridLinesVisible="true" style="-fx-background-color: white;">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="14.28" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="60.0" vgrow="ALWAYS" />
+                            </rowConstraints>
+                        </GridPane>
+                    </ScrollPane>
+                </VBox>
+            </Tab>
+
+            <Tab text="🌍 Google Agenda (Vacances)">
+                <AnchorPane>
+                    <WebView fx:id="calendarWebView" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
+                </AnchorPane>
+            </Tab>
+
+        </TabPane>
     </center>
 
     <right>
-        <VBox prefWidth="220" spacing="10" style="-fx-background-color: white; -fx-padding: 15; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 0 2;">
-            <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2d3436;" text="Tâches à planifier" />
-
-            <Button maxWidth="Infinity" onAction="#handleAddTask" style="-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 15; -fx-padding: 8;" text="+ Nouvelle Tâche">
-                <effect><DropShadow color="rgba(74, 0, 224, 0.3)" radius="5" offsetY="2"/></effect>
-            </Button>
-
-            <ScrollPane fitToWidth="true" style="-fx-background: white; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+        <VBox prefWidth="220" spacing="10" style="-fx-background-color: white; -fx-padding: 15; -fx-border-color: #f1f2f6;">
+            <Label style="-fx-font-weight: bold;" text="Tâches non planifiées" />
+            <Button maxWidth="Infinity" onAction="#handleAddTask" style="-fx-background-color: #4A00E0; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;" text="+ Nouvelle Tâche" />
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
                 <VBox fx:id="taskListContainer" spacing="6" />
             </ScrollPane>
         </VBox>
