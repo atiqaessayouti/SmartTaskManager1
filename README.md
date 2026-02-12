@@ -2,7 +2,14 @@
 
 **SmartTaskManager** is a modern desktop application built with **JavaFX** and **MySQL**, designed to revolutionize productivity through an integrated **AI Chatbot**. It combines traditional task management with intelligent insights to help users "Eat the Frog" and stay on track.
 
+## 👥 Developed By
 
+This project was developed as part of our final year project by:
+
+* **[Atiqa Essayouti]** -* **[Sana Timourti]** *[Kaoutar Misbah] 
+
+
+---
 
 ## ✨ Key Features
 
